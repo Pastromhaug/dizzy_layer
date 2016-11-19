@@ -255,7 +255,11 @@ class LSTMStateTuple(_LSTMStateTuple):
 
 
 class BasicLSTMCell(RNNCell):
-  """Basic LSTM recurrent network cell.
+  """Basic
+
+
+
+   recurrent network cell.
 
   The implementation is based on: http://arxiv.org/abs/1409.2329.
 

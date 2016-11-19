@@ -1,15 +1,15 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCell
+from dizzyLayer import DizzyRNNCell, DizzyRNNCell2
 
 #global config variables
-num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 10
-state_size = 40
+state_size = 10
 learning_rate = 0.1
-num_data_points = 100000
-indeces = [3,13,20]
+num_data_points = 1000
+indeces = [3,8]
 num_classes = len(indeces)+1
 
 # with tf.variable_scope('rnn_cell'):
@@ -21,24 +21,6 @@ num_classes = len(indeces)+1
 #         W = tf.get_variable('W', [num_classes + state_size, state_size])
 #         b = tf.get_variable('b', [state_size], initializer=tf.constant_initializer(0.0))
 #     return tf.tanh(tf.matmul(tf.concat(1, [rnn_input, state]), W) + b)
-
-# def DizzyLayer(X):
-#     n = int(X.get_shape()[0])
-#     n_prime = n*(n-1)/2
-#     thetas = tf.Variable(tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas")
-#     X_split = [X[k, :] for k in range(n)]
-#     indices = [(a, b) for b in range(n) for a in range(b)]
-#     for k in range(n_prime):
-#         (a, b) = indices[k]
-#         theta = thetas[k]
-#         c = tf.cos(theta)
-#         s = tf.sin(theta)
-#         v_1 =  c*X_split[a]+s*X_split[b]
-#         v_2 = -s*X_split[a]+c*X_split[b]
-#         X_split[a] = v_1
-#         X_split[b] = v_2
-#     out = tf.pack(X_split)
-#     return out, out
 
 def gen_data(size=1000000):
     X = np.array(np.random.choice(2, size=(size,)))
@@ -83,8 +65,8 @@ init_state = tf.zeros([batch_size, state_size])
 x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
 
-
-
+# rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
+# rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
 rnn_cell = DizzyRNNCell(state_size)
 rnn_outputs, final_state = tf.nn.rnn(rnn_cell, rnn_inputs, initial_state=init_state)
 
@@ -103,7 +85,10 @@ losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(logit,label) for \
 total_loss = tf.reduce_mean(losses)
 
 pred_labels = [tf.argmax(log,1) for log in predictions]
-correct_prediction = tf.equal(tf.argmax(pred_labels,1), tf.argmax(y_as_list,1))
+y_as_list = tf.pack(y_as_list)
+pred_labels = tf.cast(tf.pack(pred_labels), tf.int32)
+# correct_prediction = [tf.equal(p,l) for p,l in zip(pred_labels, y_as_list)]
+correct_prediction = tf.equal(pred_labels, y_as_list)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 # accuracies = tf.equal(tf.argmax(logits, 0), tf.argmax(y,0), 0)
@@ -130,7 +115,8 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                 # print("y")
                 # print(Y)
                 (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
-                logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_) = \
+                logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_,
+                correct_prediction_) = \
                     sess.run([losses,
                               total_loss,
                               final_state,
@@ -143,7 +129,8 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                               losses,
                               total_loss,
                               pred_labels,
-                              accuracy],
+                              accuracy,
+                              correct_prediction],
                                   feed_dict={x:X, y:Y, init_state:training_state})
 
                 acc += accuracy
@@ -168,6 +155,10 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
                 # print("")
                 # print("Pred_labels: ")
+                # print(pred_labels_)
+                #
+                # print("Correct_rediction:")
+                # print(correct_prediction_)
                 # i = 0
                 # for log in pred_labels_:
                 #     print("Pred Label %d" %i)
@@ -185,6 +176,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                 #     print(pred)
                 #
                 # print("\ny_as_list:")
+                # print(y_as_list_)
                 # i = 0
                 # for lst in y_as_list_:
                 #     print("y_as_list %d" % i)
@@ -221,5 +213,5 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 #     print(batch[0])
 #     print("y:")
 #     print(batch[1])
-training_losses = train_network(10,num_steps, state_size)
+training_losses = train_network(100,num_steps, state_size)
 # plt.plot(training_losses)
