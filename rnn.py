@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 from dizzyLayer import DizzyRNNCell, DizzyRNNCell2
 
 #global config variables
-num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 10
-state_size = 10
+num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 50
+state_size = 5
 learning_rate = 0.1
-num_data_points = 1000
-indeces = [3,8]
+num_data_points = 15000
+indeces = [3,8, 20]
 num_classes = len(indeces)+1
 
 # with tf.variable_scope('rnn_cell'):
@@ -70,6 +70,10 @@ rnn_inputs = tf.unpack(x_one_hot, axis=1)
 rnn_cell = DizzyRNNCell(state_size)
 rnn_outputs, final_state = tf.nn.rnn(rnn_cell, rnn_inputs, initial_state=init_state)
 
+[tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
+# tf.histogram_summary('hidden state hist/' + type(self).__name__, output)
+
+
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes])
     b = tf.get_variable('v', [num_classes], initializer=tf.constant_initializer(0.0))
@@ -95,112 +99,118 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
-
+sess = tf.Session()
+summary = tf.merge_all_summaries()
+train_writer = tf.train.SummaryWriter('./summary', sess.graph)
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
-    with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        training_losses = []
-        for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps)):
-            training_loss = 0
-            acc = 0
-            num_steps = 0
-            training_state = np.zeros((batch_size, state_size))
-            if verbose:
-                print("EPOCH %d" % idx)
-            for step, (X, Y) in enumerate(epoch):
-                num_steps += 1
-                # print("BATCH %d" % step)
-                # print("x")
-                # print(X)
-                # print("y")
-                # print(Y)
-                (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
-                logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_,
-                correct_prediction_) = \
-                    sess.run([losses,
-                              total_loss,
-                              final_state,
-                              train_step,
-                              rnn_outputs,
-                              final_state,
-                              logits,
-                              predictions,
-                              y_as_list,
-                              losses,
-                              total_loss,
-                              pred_labels,
-                              accuracy,
-                              correct_prediction],
-                                  feed_dict={x:X, y:Y, init_state:training_state})
+    # with tf.Session() as sess:
 
-                acc += accuracy
-                training_loss += training_loss_
 
-                # print("rnn_outputs")
-                # i = 0
-                # for out in rnn_outputs_:
-                #     print("output %d" %i)
-                #     i = i + 1
-                #     print(out)
-                # print("")
-                # print("final_state:")
-                # print(final_state_)
-                # print("")
-                # print("Logits: ")
-                # i = 0
-                # for log in logits_:
-                #     print("logit %d" %i)
-                #     i = i + 1
-                #     print(log)
+    sess.run(tf.initialize_all_variables())
+    training_losses = []
+    for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps)):
+        training_loss = 0
+        acc = 0
+        num_steps = 0
+        training_state = np.zeros((batch_size, state_size))
+        if verbose:
+            print("EPOCH %d" % idx)
+        for step, (X, Y) in enumerate(epoch):
+            num_steps += 1
+            # print("BATCH %d" % step)
+            # print("x")
+            # print(X)
+            # print("y")
+            # print(Y)
+            (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
+            logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_,
+            correct_prediction_, summary_) = \
+                sess.run([losses,
+                          total_loss,
+                          final_state,
+                          train_step,
+                          rnn_outputs,
+                          final_state,
+                          logits,
+                          predictions,
+                          y_as_list,
+                          losses,
+                          total_loss,
+                          pred_labels,
+                          accuracy,
+                          correct_prediction,
+                          summary],
+                              feed_dict={x:X, y:Y, init_state:training_state})
 
-                # print("")
-                # print("Pred_labels: ")
-                # print(pred_labels_)
-                #
-                # print("Correct_rediction:")
-                # print(correct_prediction_)
-                # i = 0
-                # for log in pred_labels_:
-                #     print("Pred Label %d" %i)
-                #     i = i + 1
-                #     print(log)
-                #
-                #
-                #
-                # print("")
-                # print("Predictions:")
-                # i = 0
-                # for pred in predictions_:
-                #     print("prediction %d" %i)
-                #     i = i + 1
-                #     print(pred)
-                #
-                # print("\ny_as_list:")
-                # print(y_as_list_)
-                # i = 0
-                # for lst in y_as_list_:
-                #     print("y_as_list %d" % i)
-                #     i = i + 1
-                #     print(lst)
-                #
-                # i = 0
-                # print("\nLosses:")
-                # for los in losses_:
-                #     print("loss %d" %i)
-                #     i = i + 1
-                #     print(los)
-                #
-                # print("\nTotal Loss:")
-                # print(total_loss_)
+            train_writer.add_summary(summary_, step)
+            acc += accuracy
+            training_loss += training_loss_
 
-            acc = acc/num_steps
-            training_loss = training_loss/num_steps
-            if verbose:
-                print(
-                      "loss:", training_loss,
-                      "acc:", accuracy_)
-            training_losses.append(training_loss)
-            training_loss = 0
+            # print("rnn_outputs")
+            # i = 0
+            # for out in rnn_outputs_:
+            #     print("output %d" %i)
+            #     i = i + 1
+            #     print(out)
+            # print("")
+            # print("final_state:")
+            # print(final_state_)
+            # print("")
+            # print("Logits: ")
+            # i = 0
+            # for log in logits_:
+            #     print("logit %d" %i)
+            #     i = i + 1
+            #     print(log)
+
+            # print("")
+            # print("Pred_labels: ")
+            # print(pred_labels_)
+            #
+            # print("Correct_rediction:")
+            # print(correct_prediction_)
+            # i = 0
+            # for log in pred_labels_:
+            #     print("Pred Label %d" %i)
+            #     i = i + 1
+            #     print(log)
+            #
+            #
+            #
+            # print("")
+            # print("Predictions:")
+            # i = 0
+            # for pred in predictions_:
+            #     print("prediction %d" %i)
+            #     i = i + 1
+            #     print(pred)
+            #
+            # print("\ny_as_list:")
+            # print(y_as_list_)
+            # i = 0
+            # for lst in y_as_list_:
+            #     print("y_as_list %d" % i)
+            #     i = i + 1
+            #     print(lst)
+            #
+            # i = 0
+            # print("\nLosses:")
+            # for los in losses_:
+            #     print("loss %d" %i)
+            #     i = i + 1
+            #     print(los)
+            #
+            # print("\nTotal Loss:")
+            # print(total_loss_)
+
+        acc = acc/num_steps
+        training_loss = training_loss/num_steps
+        if verbose:
+            print(
+                  "loss:", training_loss,
+                  "acc:", accuracy_)
+        training_losses.append(training_loss)
+        training_loss = 0
 
     return training_losses
 
@@ -213,5 +223,6 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 #     print(batch[0])
 #     print("y:")
 #     print(batch[1])
-training_losses = train_network(100,num_steps, state_size)
+training_losses = train_network(200,num_steps, state_size)
+
 # plt.plot(training_losses)
