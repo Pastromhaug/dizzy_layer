@@ -1,4 +1,5 @@
-
+n= 10
+n = n-1
 g = [[] for i in range(n)]
 
 k = 0

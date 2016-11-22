@@ -6,7 +6,7 @@ from dizzyLayer import DizzyRNNCell, DizzyRNNCell2
 #global config variables
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
-state_size = 5
+state_size = 15
 learning_rate = 0.1
 num_data_points = 15000
 indeces = [3,8, 20]
