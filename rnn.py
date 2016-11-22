@@ -109,7 +109,8 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
 
     sess.run(tf.initialize_all_variables())
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s min for  graph building ---" % (time.time() - start_time)/60.0)
+    start_time = time.time()
     training_losses = []
     for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps)):
         training_loss = 0
@@ -215,6 +216,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_losses.append(training_loss)
         training_loss = 0
 
+    print("--- %s min since graph completion ---" % (time.time() - start_time)/60.0)
     return training_losses
 
 # data = gen_data(50)
