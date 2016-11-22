@@ -2,11 +2,13 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from dizzyLayer import DizzyRNNCell, DizzyRNNCell2
+import time
+start_time = time.time()
 
 #global config variables
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
-state_size = 15
+state_size = 5
 learning_rate = 0.1
 num_data_points = 15000
 indeces = [3,8, 20]
@@ -107,6 +109,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
 
     sess.run(tf.initialize_all_variables())
+    print("--- %s seconds ---" % (time.time() - start_time))
     training_losses = []
     for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps)):
         training_loss = 0
