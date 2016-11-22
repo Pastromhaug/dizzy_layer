@@ -1,2 +1,4 @@
 summary/*
 *.pyc
+*.e*
+*.o*
