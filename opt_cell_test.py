@@ -44,19 +44,6 @@ def gen_rot_idx(n,np):
 
     return cos_list, sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs
 
-def gen_rot_list(n):
-    arr = [[0] * n for i in range(n-1)]
-    rot_list = [[] for i in range(n-1)]
-    idx = 0
-    for i in range(n-1):
-        for j in range(i+1, n):
-            while arr[idx][i] == 1:
-                idx = (idx+1) % (n-1)
-            arr[idx][i] = 1
-            arr[idx][j] = 1
-            rot_list[idx].append([i, j])
-    return rot_list
-
 def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs):
     thetas = tf.Variable(tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas")
     cos = tf.cos(thetas)
@@ -92,8 +79,6 @@ class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
 
   def __init__(self, num_units):
       self._num_units = num_units
-      self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
-      self._rot_list = tf.constant(gen_rot_list(self._num_units))
       self._num_params = num_units*(num_units-1)/2
       cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = gen_rot_idx(self._num_units, self._num_params)
       self._cos_list = cos_list
@@ -113,7 +98,7 @@ class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
 
   def __call__(self):
     """Most basic RNN: output = new_state = activation(W * input + U * state + B)."""
-    X = tf.Variable(tf.random_uniform([self._num_units, self._num_units], 0, 5), name="input")
+    X = tf.Variable(tf.random_uniform([self._num_units, 5], 0, 5), name="input")
     cos_thetas, sin_thetas, nsin_thetas, sparse_cos, dense, Y = DizzyLayerV3(X, self._num_units, self._num_params,
         self._cos_list,  self._sin_list, self._nsin_list,
         self._cos_idxs, self._sin_idxs, self._nsin_idxs)
