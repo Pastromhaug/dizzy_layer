@@ -1,18 +1,30 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCell, DizzyRNNCell2
+from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2
 import time
-start_time = time.time()
+import sys
 
 #global config variables
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
-state_size = 5
+state_size = int(sys.argv[1])
 learning_rate = 0.1
 num_data_points = 15000
 indeces = [3,8, 20]
 num_classes = len(indeces)+1
+
+layer_type = int(sys.argv[2])
+if layer_type == 1:
+    rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
+elif layer_type == 2:
+    rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
+elif layer_type == 3:
+    rnn_cell = DizzyRNNCellV1(state_size)
+elif layer_type == 4:
+    rnn_cell = DizzyRNNCellV2(state_size)
+elif layer_type == 5:
+    rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
 
 # with tf.variable_scope('rnn_cell'):
 #     W =  tf.get_variable('W', [num_classes + state_size, state_size])
@@ -67,9 +79,6 @@ init_state = tf.zeros([batch_size, state_size])
 x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
 
-# rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
-# rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
-rnn_cell = DizzyRNNCell(state_size)
 rnn_outputs, final_state = tf.nn.rnn(rnn_cell, rnn_inputs, initial_state=init_state)
 
 [tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
@@ -96,21 +105,25 @@ pred_labels = tf.cast(tf.pack(pred_labels), tf.int32)
 # correct_prediction = [tf.equal(p,l) for p,l in zip(pred_labels, y_as_list)]
 correct_prediction = tf.equal(pred_labels, y_as_list)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+train_accuracy = tf.scalar_summary('accuracy, layer_type: %d, state_size: %d' % (layer_type, state_size), accuracy)
+train_loss = tf.scalar_summary('loss layer_type: %d, state_size: %d' % (layer_type, state_size), total_loss)
 
 # accuracies = tf.equal(tf.argmax(logits, 0), tf.argmax(y,0), 0)
 # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
+# start_time = time.time()
+# print("start_time1 %d" % start_time)
 sess = tf.Session()
-summary = tf.merge_all_summaries()
-train_writer = tf.train.SummaryWriter('./summary', sess.graph)
+summary = tf.merge_summary([train_accuracy, train_loss])
+train_writer = tf.train.SummaryWriter('./summary2', sess.graph)
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     # with tf.Session() as sess:
 
 
     sess.run(tf.initialize_all_variables())
-    print("--- %s min for  graph building ---" % (time.time() - start_time)/60.0)
-    start_time = time.time()
+    # print("---  min for  graph building ---",(time.time() - start_time)/60.0)
+    # start_time = time.time()
     training_losses = []
     for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps)):
         training_loss = 0
@@ -126,6 +139,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
             # print(X)
             # print("y")
             # print(Y)
+
             (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
             logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_,
             correct_prediction_, summary_) = \
@@ -146,66 +160,10 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                           summary],
                               feed_dict={x:X, y:Y, init_state:training_state})
 
-            train_writer.add_summary(summary_, step)
             acc += accuracy
             training_loss += training_loss_
 
-            # print("rnn_outputs")
-            # i = 0
-            # for out in rnn_outputs_:
-            #     print("output %d" %i)
-            #     i = i + 1
-            #     print(out)
-            # print("")
-            # print("final_state:")
-            # print(final_state_)
-            # print("")
-            # print("Logits: ")
-            # i = 0
-            # for log in logits_:
-            #     print("logit %d" %i)
-            #     i = i + 1
-            #     print(log)
-
-            # print("")
-            # print("Pred_labels: ")
-            # print(pred_labels_)
-            #
-            # print("Correct_rediction:")
-            # print(correct_prediction_)
-            # i = 0
-            # for log in pred_labels_:
-            #     print("Pred Label %d" %i)
-            #     i = i + 1
-            #     print(log)
-            #
-            #
-            #
-            # print("")
-            # print("Predictions:")
-            # i = 0
-            # for pred in predictions_:
-            #     print("prediction %d" %i)
-            #     i = i + 1
-            #     print(pred)
-            #
-            # print("\ny_as_list:")
-            # print(y_as_list_)
-            # i = 0
-            # for lst in y_as_list_:
-            #     print("y_as_list %d" % i)
-            #     i = i + 1
-            #     print(lst)
-            #
-            # i = 0
-            # print("\nLosses:")
-            # for los in losses_:
-            #     print("loss %d" %i)
-            #     i = i + 1
-            #     print(los)
-            #
-            # print("\nTotal Loss:")
-            # print(total_loss_)
+            train_writer.add_summary(summary_, idx)
 
         acc = acc/num_steps
         training_loss = training_loss/num_steps
@@ -216,18 +174,6 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_losses.append(training_loss)
         training_loss = 0
 
-    print("--- %s min since graph completion ---" % (time.time() - start_time)/60.0)
     return training_losses
 
-# data = gen_data(50)
-# print(data)
-# batches = gen_batch(data, 3, 5)
-# for i, batch in enumerate(batches):
-#     print("batch:");
-#     print("x:")
-#     print(batch[0])
-#     print("y:")
-#     print(batch[1])
 training_losses = train_network(200,num_steps, state_size)
-
-# plt.plot(training_losses)
