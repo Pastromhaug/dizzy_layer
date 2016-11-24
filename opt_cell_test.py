@@ -14,13 +14,21 @@ def gen_rot_idx(n,np):
     idx = 0
     theta_num = 0
 
+
+
+    head = -1
+    tail = -1
+    arr = [[-1] * n for i in range(n-1)]
+    rot_list = [[] for i in range(n-1)]
+    start_idx = 0
+    idx = 0
+    theta_idx = 0
     for i in range(n-1):
         for j in range(i+1, n):
-            while arr[idx][i] == 1:
+            while arr[idx][i] > -1 or arr[idx][j] > -1:
                 idx = (idx+1) % (n-1)
-            arr[idx][i] = 1
-            arr[idx][j] = 1
-            print(i,j,idx, (idx*n+i, i), (idx*n+j,j))
+            arr[idx][i] = theta_idx
+            arr[idx][j] = theta_idx
             cos_list[idx*n + i] = [idx*n + i,i]
             cos_list[idx*n + j] = [idx*n + j,j]
             sin_list[idx*n + i] = [idx*n + i,j]
@@ -30,6 +38,12 @@ def gen_rot_idx(n,np):
             sin_idxs[idx*n + i] = theta_num
             nsin_idxs[idx*n + j] = theta_num
             theta_num += 1
+        head = (head + 2) % (n - 1)
+        tail = (tail + 1) % (n - 1)
+        theta_idx += 1
+        start_idx = (start_idx + 2) % (n - 1)
+        idx = start_idx
+
     print arr
     print(len(arr))
     print("theta num", theta_num)
@@ -133,7 +147,7 @@ class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
 
 
 
-rnn_cell = DizzyRNNCellV3(8)
+rnn_cell = DizzyRNNCellV3(20)
 run_cell = rnn_cell()
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())
