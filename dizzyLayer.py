@@ -93,7 +93,8 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
     for i in range(n-1):
         start = 2*n*i
         end = 2*n*(i+1)
-        indices = tf.mod(full_rot.indices[start:end], n)
+        indices = full_rot.indices[start:end]
+        indices = tf.mod(indices, n)
         values = full_rot.values[start:end]
         shape = tf.cast(tf.constant([n,n]), tf.int64)
         sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
