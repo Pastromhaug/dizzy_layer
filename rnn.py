@@ -9,7 +9,7 @@ import sys
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 state_size = int(sys.argv[1])
-learning_rate = 0.05
+learning_rate = 0.01
 num_data_points = 15000
 indeces = [3,8, 20]
 num_classes = len(indeces)+1
