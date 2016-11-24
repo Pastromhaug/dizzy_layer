@@ -90,17 +90,28 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
     dense = tf.sparse_to_dense(sparse_indices=full_rot.indices,
         output_shape = full_rot.shape, sparse_values=full_rot.values)
 
+    indices = full_rot.indices
+    indices = tf.mod(indices, n)
+    splt_indices = tf.split(0, n-1, indices)
+
+    values = full_rot.values
+    splt_values = tf.split(0, n-1, values)
     for i in range(n-1):
-        start = 2*n*i
-        end = 2*n*(i+1)
-        indices = full_rot.indices
-        # indices = tf.reshape(indices, [n_prime,2])
-        indices = indices[start:end]
-        indices = tf.mod(indices, n)
-        values = full_rot.values[start:end]
         shape = tf.cast(tf.constant([n,n]), tf.int64)
         sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
         X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
+
+    # for i in range(n-1):
+    #     start = 2*n*i
+    #     end = 2*n*(i+1)
+    #     indices = full_rot.indices
+    #     # indices = tf.reshape(indices, [n_prime,2])
+    #     indices = indices[start:end]
+    #     indices = tf.mod(indices, n)
+    #     values = full_rot.values[start:end]
+    #     shape = tf.cast(tf.constant([n,n]), tf.int64)
+    #     sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
+    #     X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
 
     n_rots = tf.sparse_split(0, n-1, full_rot)
     # for i in range(n-1):
