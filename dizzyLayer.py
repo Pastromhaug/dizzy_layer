@@ -94,7 +94,7 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
         start = 2*n*i
         end = 2*n*(i+1)
         indices = full_rot.indices
-        indices = tf.reshape(indices, [n_prime*2,2])
+        # indices = tf.reshape(indices, [n_prime,2])
         indices = indices[start:end]
         indices = tf.mod(indices, n)
         values = full_rot.values[start:end]
