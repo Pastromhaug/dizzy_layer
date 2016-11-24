@@ -106,10 +106,12 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
 
     values = full_rot.values
     splt_values = tf.split(0, n-1, values)
-    
+
     for i in range(n-1):
         shape = tf.cast(tf.constant([n,n]), tf.int64)
-        sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
+        curr_indices = splt_indices[i]
+        curr_values = splt_values[i]
+        sparse_rot = tf.SparseTensor(indices=curr_indices, values=curr_values, shape=shape)
         X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
 
     return X
