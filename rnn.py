@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2
+from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3
 import time
 import sys
 
@@ -25,6 +25,8 @@ elif layer_type == 4:
     rnn_cell = DizzyRNNCellV2(state_size)
 elif layer_type == 5:
     rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
+elif layer_type == 6:
+    rnn_cell = DizzyRNNCellV3(state_size)
 
 # with tf.variable_scope('rnn_cell'):
 #     W =  tf.get_variable('W', [num_classes + state_size, state_size])

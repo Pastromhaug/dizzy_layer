@@ -22,6 +22,119 @@ from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.util import nest
 
 import tensorflow as tf
+import numpy as np
+
+def gen_rot_idx(n,np):
+    np = int(np)
+    cos_list = [[] for i in range(np*2)]
+    sin_list = [[-1,-1] for i in range(np*2)]
+    nsin_list = [[-1,-1] for i in range(np*2)]
+    cos_idxs = [-1 for i in range(np*2)]
+    sin_idxs = [-1 for i in range(np*2)]
+    nsin_idxs = [-1 for i in range(np*2)]
+
+    arr = [[0] * n for i in range(n-1)]
+    idx = 0
+    theta_num = 0
+
+    for i in range(n-1):
+        for j in range(i+1, n):
+            while arr[idx][i] == 1:
+                idx = (idx+1) % (n-1)
+            arr[idx][i] = 1
+            arr[idx][j] = 1
+            cos_list[idx*n + i] = [idx*n + i,i]
+            cos_list[idx*n + j] = [idx*n + j,j]
+            sin_list[idx*n + i] = [idx*n + i,j]
+            nsin_list[idx*n + j] = [idx*n + j,i]
+            cos_idxs[idx*n + i] = theta_num
+            cos_idxs[idx*n + j] = theta_num
+            sin_idxs[idx*n + i] = theta_num
+            nsin_idxs[idx*n + j] = theta_num
+            theta_num += 1
+
+    sin_list = [i for i in sin_list if i != [-1,-1]]
+    nsin_list = [i for i in nsin_list if i != [-1,-1]]
+    sin_idxs = [i for i in sin_idxs if i != -1]
+    nsin_idxs = [i for i in nsin_idxs if i != -1]
+
+    cos_list = tf.constant(cos_list, dtype=tf.int64)
+    sin_list = tf.constant(sin_list, dtype=tf.int64)
+    nsin_list = tf.constant(nsin_list, dtype=tf.int64)
+    cos_idxs = tf.constant(cos_idxs, dtype=tf.int64)
+    sin_idxs = tf.constant(sin_idxs, dtype=tf.int64)
+    nsin_idxs = tf.constant(nsin_idxs, dtype=tf.int64)
+
+    return cos_list, sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs
+
+def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs):
+    n_prime = int(n_prime)
+    thetas = tf.Variable(tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas")
+    cos = tf.cos(thetas)
+    sin = tf.sin(thetas)
+    nsin = tf.neg(sin)
+
+    cos_thetas = tf.squeeze(tf.gather(cos, cos_idxs))
+    sin_thetas = tf.squeeze(tf.gather(sin, sin_idxs))
+    nsin_thetas = tf.squeeze(tf.gather(nsin, nsin_idxs))
+
+    shape = tf.constant([2*n_prime, n])
+    shape = tf.cast(shape, tf.int64)
+    sparse_cos = tf.SparseTensor(indices=cos_list, values=cos_thetas, shape=shape)
+    sparse_sin = tf.SparseTensor(indices=sin_list, values=sin_thetas, shape=shape)
+    sparse_nsin = tf.SparseTensor(indices=nsin_list, values=nsin_thetas, shape=shape)
+
+    full_rot = tf.sparse_add(sparse_cos,
+                    tf.sparse_add(sparse_sin, sparse_nsin))
+
+    dense = tf.sparse_to_dense(sparse_indices=full_rot.indices,
+        output_shape = full_rot.shape, sparse_values=full_rot.values)
+
+    for i in range(n-1):
+        start = 2*n*i
+        end = 2*n*(i+1)
+        indices = tf.mod(full_rot.indices[start:end], n)
+        values = full_rot.values[start:end]
+        shape = tf.cast(tf.constant([n,n]), tf.int64)
+        sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
+        X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
+
+    return X
+
+class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
+  """The most basic RNN cell."""
+
+  def __init__(self, num_units):
+      self._num_units = num_units
+      self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
+      self._rot_list = tf.constant(gen_rot_list(self._num_units))
+      self._num_params = num_units*(num_units-1)/2
+      cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = gen_rot_idx(self._num_units, self._num_params)
+      self._cos_list = cos_list
+      self._sin_list = sin_list
+      self._nsin_list = nsin_list
+      self._cos_idxs = cos_idxs
+      self._sin_idxs = sin_idxs
+      self._nsin_idxs = nsin_idxs
+
+  @property
+  def state_size(self):
+    return self._num_units
+
+  @property
+  def output_size(self):
+    return self._num_units
+
+  def __call__(self, inputs, state, scope=None):
+    state = tf.transpose(state)
+    state_out = DizzyLayerV3(state, self._num_units, self._num_params,
+        self._cos_list,  self._sin_list, self._nsin_list,
+        self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+    state_out = tf.transpose(state_out)
+    input_out = _linear([inputs], self._num_units, True)
+    output = tf.abs(state_out + input_out)
+    return output, output
+
 
 def gen_rot_list(n):
     arr = [[0] * n for i in range(n-1)]
@@ -35,10 +148,6 @@ def gen_rot_list(n):
             arr[idx][j] = 1
             rot_list[idx].append([i, j])
     return rot_list
-
-def DizzyLayerV3(X, rot_list, n):
-    thetas = tf.Variable(tf.random_uniform([n/2, n-1], 0, 2*math.pi), name="thetas")
-    
 
 def DizzyLayerV2(X, rot_list, n):
     n_prime = int(n*(n-1)/2)
@@ -77,35 +186,6 @@ def DizzyLayerV1(X, indices):
         X_split[b] = v_2
     out = tf.pack(X_split)
     return out
-
-class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
-  """The most basic RNN cell."""
-
-  def __init__(self, num_units, input_size=None, activation=tanh):
-    if input_size is not None:
-      logging.warn("%s: The input_size parameter is deprecated.", self)
-    self._num_units = num_units
-    self._activation = activation
-    self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
-    self._rot_list = tf.constant(gen_rot_list(self._num_units))
-    self._num_params = tf.constant(num_units*(num_units-2)/2)
-
-  @property
-  def state_size(self):
-    return self._num_units
-
-  @property
-  def output_size(self):
-    return self._num_units
-
-  def __call__(self, inputs, state, scope=None):
-    """Most basic RNN: output = new_state = activation(W * input + U * state + B)."""
-    with vs.variable_scope(scope or type(self).__name__):  # "BasicRNNCell"
-      X = tf.transpose(state)
-      state_out = tf.transpose(DizzyLayerV2(X, self._rot_list, self._num_units));
-      input_out = _linear([inputs], self._num_units, True)
-      output = tf.abs(state_out + input_out)
-    return output, output
 
 class DizzyRNNCellV1(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""

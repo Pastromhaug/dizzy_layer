@@ -20,6 +20,7 @@ def gen_rot_idx(n,np):
                 idx = (idx+1) % (n-1)
             arr[idx][i] = 1
             arr[idx][j] = 1
+            print(i,j,idx, (idx*n+i, i), (idx*n+j,j))
             cos_list[idx*n + i] = [idx*n + i,i]
             cos_list[idx*n + j] = [idx*n + j,j]
             sin_list[idx*n + i] = [idx*n + i,j]
@@ -29,12 +30,21 @@ def gen_rot_idx(n,np):
             sin_idxs[idx*n + i] = theta_num
             nsin_idxs[idx*n + j] = theta_num
             theta_num += 1
+    print arr
+    print(len(arr))
+    print("theta num", theta_num)
+    print("cos length", len(cos_list))
 
     sin_list = [i for i in sin_list if i != [-1,-1]]
     nsin_list = [i for i in nsin_list if i != [-1,-1]]
     sin_idxs = [i for i in sin_idxs if i != -1]
     nsin_idxs = [i for i in nsin_idxs if i != -1]
 
+    print(cos_list)
+    print("")
+    print(sin_list)
+    print("")
+    print(nsin_list)
     cos_list = tf.constant(cos_list, dtype=tf.int64)
     sin_list = tf.constant(sin_list, dtype=tf.int64)
     nsin_list = tf.constant(nsin_list, dtype=tf.int64)
@@ -66,13 +76,29 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
     dense = tf.sparse_to_dense(sparse_indices=full_rot.indices,
         output_shape = full_rot.shape, sparse_values=full_rot.values)
 
-    n_rots = tf.sparse_split(0, n-1, full_rot)
     for i in range(n-1):
-        X = tf.sparse_tensor_dense_matmul(n_rots[i], X)
-    #
-    # return X
+        start = 2*n*i
+        end = 2*n*(i+1)
+        indices = tf.mod(full_rot.indices[start:end], n)
+        values = full_rot.values[start:end]
+        shape = tf.cast(tf.constant([n,n]), tf.int64)
+        sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
+        X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
 
-    return cos_thetas, sin_thetas, nsin_thetas, sparse_cos, dense, X,
+    n_rots = tf.sparse_split(0, n-1, full_rot)
+    # for i in range(n-1):
+        # X = tf.sparse_tensor_dense_matmul(n_rots[i], X)
+    # #
+    # # return X
+
+    # start = 2*n*0
+    # end = 2*n*(0+1)
+    # indices = full_rot.indices[start:end]
+    # values = full_rot.values[start:end]
+    # shape = tf.cast(tf.constant([n,n]), tf.int64)
+    # sparse_rot = tf.SparseTensor(indices=indices, values=values, shape=shape)
+
+    return cos_thetas, sin_thetas, nsin_thetas, sparse_cos, dense, X, sparse_rot, n_rots[-1], full_rot
 
 class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
@@ -99,19 +125,19 @@ class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
   def __call__(self):
     """Most basic RNN: output = new_state = activation(W * input + U * state + B)."""
     X = tf.Variable(tf.random_uniform([self._num_units, 5], 0, 5), name="input")
-    cos_thetas, sin_thetas, nsin_thetas, sparse_cos, dense, Y = DizzyLayerV3(X, self._num_units, self._num_params,
+    cos_thetas, sin_thetas, nsin_thetas, sparse_cos, dense, Y, rot, indices, full_rot = DizzyLayerV3(X, self._num_units, self._num_params,
         self._cos_list,  self._sin_list, self._nsin_list,
         self._cos_idxs, self._sin_idxs, self._nsin_idxs)
-    return (X, Y, dense, cos_thetas, sin_thetas, nsin_thetas, sparse_cos, self._cos_list,
+    return (full_rot, indices, rot, X, Y, dense, cos_thetas, sin_thetas, nsin_thetas, sparse_cos, self._cos_list,
         self._sin_list, self._nsin_list, self._cos_idxs, self._sin_idxs, self._nsin_idxs)
 
 
 
-rnn_cell = DizzyRNNCellV3(6)
+rnn_cell = DizzyRNNCellV3(8)
 run_cell = rnn_cell()
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())
-(X, Y, dense, cos_thetas, sin_thetas, nsin_thetas, sparse_cos, cos_list, sin_list, nsin_list,
+(full_rot, indices, rot, X, Y, dense, cos_thetas, sin_thetas, nsin_thetas, sparse_cos, cos_list, sin_list, nsin_list,
     cos_idxs, sin_idxs, nsin_idxs) = sess.run(run_cell)
 
 print(cos_list)
@@ -128,3 +154,6 @@ print(sparse_cos)
 print(dense)
 print(X)
 print(Y)
+print(full_rot)
+print(rot)
+print(indices)
