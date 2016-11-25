@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3, DizzyRNNCellBottom
 import time
 import sys
+from tensorflow.python.client import timeline
 
 #global config variables
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
@@ -119,7 +120,10 @@ train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
 # start_time = time.time()
 # print("start_time1 %d" % start_time)
-sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+# sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+sess = tf.Session()
+run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+run_metadata = tf.RunMetadata()
 summary = tf.merge_summary([train_accuracy, train_loss])
 train_writer = tf.train.SummaryWriter('./summary2', sess.graph)
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
@@ -158,12 +162,17 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                           accuracy,
                           correct_prediction,
                           summary],
-                              feed_dict={x:X, y:Y})
+                              feed_dict={x:X, y:Y},
+                              options=run_options, run_metadata=run_metadata)
 
             acc += accuracy
             training_loss += training_loss_
 
             train_writer.add_summary(summary_, idx)
+            tl = timeline.Timeline(run_metadata.step_stats)
+            ctf = tl.generate_chrome_trace_format()
+            with open('timeline.json', 'w') as f:
+                f.write(ctf)
 
         acc = acc/num_steps
         training_loss = training_loss/num_steps
@@ -176,4 +185,4 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
     return training_losses
 
-training_losses = train_network(200,num_steps, state_size)
+training_losses = train_network(1,num_steps, state_size)
