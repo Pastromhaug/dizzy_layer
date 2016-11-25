@@ -113,7 +113,7 @@ train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
 # start_time = time.time()
 # print("start_time1 %d" % start_time)
-sess = tf.Session()
+sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 summary = tf.merge_summary([train_accuracy, train_loss])
 train_writer = tf.train.SummaryWriter('./summary2', sess.graph)
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
