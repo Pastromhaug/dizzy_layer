@@ -9,12 +9,13 @@ import sys
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 state_size = int(sys.argv[1])
-learning_rate = 0.01
+layer_type = int(sys.argv[2])
+learning_rate = float(sys.argv[3])
 num_data_points = 15000
 indeces = [3,8, 20]
 num_classes = len(indeces)+1
+num_stacked = int(sys.argv[4])
 
-layer_type = int(sys.argv[2])
 if layer_type == 1:
     rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
 elif layer_type == 2:
@@ -28,15 +29,8 @@ elif layer_type == 5:
 elif layer_type == 6:
     rnn_cell = DizzyRNNCellV3(state_size)
 
-# with tf.variable_scope('rnn_cell'):
-#     W =  tf.get_variable('W', [num_classes + state_size, state_size])
-#     b = tf.get_variable('b', [state_size], initializer=tf.constant_initializer(0,0))
-#
-# def rnn_cell(rnn_input, state):
-#     with tf.variable_scope('rnn_cell', reuse=True):
-#         W = tf.get_variable('W', [num_classes + state_size, state_size])
-#         b = tf.get_variable('b', [state_size], initializer=tf.constant_initializer(0.0))
-#     return tf.tanh(tf.matmul(tf.concat(1, [rnn_input, state]), W) + b)
+stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
+
 
 def gen_data(size=1000000):
     X = np.array(np.random.choice(2, size=(size,)))
@@ -76,12 +70,12 @@ def gen_epochs(n, num_steps):
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
-init_state = tf.zeros([batch_size, state_size])
+init_state = [tf.zeros([batch_size, state_size]) for i in range(num_stacked)]
 
 x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
 
-rnn_outputs, final_state = tf.nn.rnn(rnn_cell, rnn_inputs, initial_state=init_state)
+rnn_outputs, final_state = tf.nn.rnn(stacked_cell, rnn_inputs, initial_state=init_state)
 
 [tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
 # tf.histogram_summary('hidden state hist/' + type(self).__name__, output)
@@ -131,16 +125,11 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_loss = 0
         acc = 0
         num_steps = 0
-        training_state = np.zeros((batch_size, state_size))
+        training_state = [np.zeros((batch_size, state_size)) for i in range(num_stacked)]
         if verbose:
             print("EPOCH %d" % idx)
         for step, (X, Y) in enumerate(epoch):
             num_steps += 1
-            # print("BATCH %d" % step)
-            # print("x")
-            # print(X)
-            # print("y")
-            # print(Y)
 
             (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
             logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, accuracy_,
@@ -160,7 +149,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                           accuracy,
                           correct_prediction,
                           summary],
-                              feed_dict={x:X, y:Y, init_state:training_state})
+                              feed_dict={x:X, y:Y})
 
             acc += accuracy
             training_loss += training_loss_

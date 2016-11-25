@@ -94,11 +94,7 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
     sparse_sin = tf.SparseTensor(indices=sin_list, values=sin_thetas, shape=shape)
     sparse_nsin = tf.SparseTensor(indices=nsin_list, values=nsin_thetas, shape=shape)
 
-    full_rot = tf.sparse_add(sparse_cos,
-                    tf.sparse_add(sparse_sin, sparse_nsin))
-
-    dense = tf.sparse_to_dense(sparse_indices=full_rot.indices,
-        output_shape = full_rot.shape, sparse_values=full_rot.values)
+    full_rot = tf.sparse_add(sparse_cos, tf.sparse_add(sparse_sin, sparse_nsin))
 
     indices = full_rot.indices
     indices = tf.mod(indices, n)
