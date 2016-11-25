@@ -18,20 +18,26 @@ num_stacked = int(sys.argv[4])
 
 if layer_type == 1:
     rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
 elif layer_type == 2:
-
     rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
 elif layer_type == 3:
     rnn_cell = DizzyRNNCellV1(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
 elif layer_type == 4:
     rnn_cell = DizzyRNNCellV2(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
 elif layer_type == 5:
     rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
 elif layer_type == 6:
     rnn_cell = DizzyRNNCellV3(state_size)
+    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
 
-stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-    [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
 
 
 def gen_data(size=1000000):
