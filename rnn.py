@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3
+from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3, DizzyRNNCellBottom
 import time
 import sys
 
@@ -19,6 +19,7 @@ num_stacked = int(sys.argv[4])
 if layer_type == 1:
     rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
 elif layer_type == 2:
+
     rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
 elif layer_type == 3:
     rnn_cell = DizzyRNNCellV1(state_size)
@@ -29,7 +30,8 @@ elif layer_type == 5:
 elif layer_type == 6:
     rnn_cell = DizzyRNNCellV3(state_size)
 
-stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
+stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+    [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
 
 
 def gen_data(size=1000000):

@@ -79,7 +79,7 @@ def gen_rot_idx(n,np):
 
 def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs):
     n_prime = int(n_prime)
-    thetas = tf.Variable(tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas")
+    thetas = tf.Variable(tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas", dtype=tf.float32)
     cos = tf.cos(thetas)
     sin = tf.sin(thetas)
     nsin = tf.neg(sin)
@@ -112,38 +112,97 @@ def DizzyLayerV3(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, sin_id
 
     return X
 
-class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
+class DizzyRNNCellBottom(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
-
   def __init__(self, num_units):
-      self._num_units = num_units
-      self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
-      self._num_params = num_units*(num_units-1)/2
-      cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = gen_rot_idx(self._num_units, self._num_params)
-      self._cos_list = cos_list
-      self._sin_list = sin_list
-      self._nsin_list = nsin_list
-      self._cos_idxs = cos_idxs
-      self._sin_idxs = sin_idxs
-      self._nsin_idxs = nsin_idxs
+        self._num_units = num_units
+        self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
+        self._num_params = num_units*(num_units-1)/2
+        cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = gen_rot_idx(self._num_units, self._num_params)
+        self._cos_list = cos_list
+        self._sin_list = sin_list
+        self._nsin_list = nsin_list
+        self._cos_idxs = cos_idxs
+        self._sin_idxs = sin_idxs
+        self._nsin_idxs = nsin_idxs
 
   @property
   def state_size(self):
-    return self._num_units
+        return self._num_units
 
   @property
   def output_size(self):
-    return self._num_units
+        return self._num_units
 
   def __call__(self, inputs, state, scope=None):
-    state = tf.transpose(state)
-    state_out = DizzyLayerV3(state, self._num_units, self._num_params,
-        self._cos_list,  self._sin_list, self._nsin_list,
-        self._cos_idxs, self._sin_idxs, self._nsin_idxs)
-    state_out = tf.transpose(state_out)
-    input_out = _linear([inputs], self._num_units, True)
-    output = tf.abs(state_out + input_out)
-    return output, output
+        with vs.variable_scope(scope or type(self).__name__):
+
+            state_out = DizzyLayerV3(tf.transpose(state), self._num_units, self._num_params,
+                self._cos_list,  self._sin_list, self._nsin_list,
+                self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+            state_out = tf.transpose(state_out)
+
+            state_bias = vs.get_variable(
+                "State_Bias", [self._num_units],
+                dtype=tf.float32,
+                initializer=init_ops.constant_initializer(dtype=tf.float32))
+            state_out = state_out + state_bias
+
+            input_out = _linear([inputs], self._num_units, True)
+            output = tf.abs(state_out + input_out)
+        return output, output
+
+
+
+class DizzyRNNCellV3(tf.nn.rnn_cell.RNNCell):
+  """The most basic RNN cell."""
+  def __init__(self, num_units):
+        self._num_units = num_units
+        self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
+        self._num_params = num_units*(num_units-1)/2
+        cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = gen_rot_idx(self._num_units, self._num_params)
+        self._cos_list = cos_list
+        self._sin_list = sin_list
+        self._nsin_list = nsin_list
+        self._cos_idxs = cos_idxs
+        self._sin_idxs = sin_idxs
+        self._nsin_idxs = nsin_idxs
+
+  @property
+  def state_size(self):
+        return self._num_units
+
+  @property
+  def output_size(self):
+        return self._num_units
+
+  def __call__(self, inputs, state, scope=None):
+        with vs.variable_scope(scope or type(self).__name__):
+
+            state_out = DizzyLayerV3(tf.transpose(state), self._num_units, self._num_params,
+                self._cos_list,  self._sin_list, self._nsin_list,
+                self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+            state_out = tf.transpose(state_out)
+
+            state_bias = vs.get_variable(
+                "State_Bias", [self._num_units],
+                dtype=tf.float32,
+                initializer=init_ops.constant_initializer(dtype=tf.float32))
+            state_out = state_out + state_bias
+
+            input_out = DizzyLayerV3(tf.transpose(inputs), self._num_units, self._num_params,
+                self._cos_list,  self._sin_list, self._nsin_list,
+                self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+            input_out = tf.transpose(input_out)
+
+            input_bias = vs.get_variable(
+                "Input_Bias", [self._num_units],
+                dtype=tf.float32,
+                initializer=init_ops.constant_initializer(dtype=tf.float32))
+            input_out = input_out + input_bias
+
+            output = tf.abs(state_out + input_out)
+        return output, output
 
 
 def gen_rot_list(n):
