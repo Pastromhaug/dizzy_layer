@@ -70,7 +70,8 @@ def gen_epochs(n, num_steps):
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
-init_state = [tf.zeros([batch_size, state_size]) for i in range(num_stacked)]
+# init_state = [tf.zeros([batch_size, state_size]) for i in range(num_stacked)]
+init_state = stacked_cell.zero_state(batch_size, tf.float32)
 
 x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
