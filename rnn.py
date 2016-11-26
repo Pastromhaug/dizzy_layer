@@ -169,10 +169,6 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
             training_loss += training_loss_
 
             train_writer.add_summary(summary_, idx)
-            tl = timeline.Timeline(run_metadata.step_stats)
-            ctf = tl.generate_chrome_trace_format()
-            with open('timeline.json', 'w') as f:
-                f.write(ctf)
 
         acc = acc/num_steps
         training_loss = training_loss/num_steps
@@ -183,6 +179,10 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_losses.append(training_loss)
         training_loss = 0
 
+    tl = timeline.Timeline(run_metadata.step_stats)
+    ctf = tl.generate_chrome_trace_format()
+    with open('timeline.json', 'w') as f:
+        f.write(ctf)
     return training_losses
 
 training_losses = train_network(1,num_steps, state_size)
