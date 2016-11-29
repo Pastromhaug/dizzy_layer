@@ -185,4 +185,4 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         f.write(ctf)
     return training_losses
 
-training_losses = train_network(1,num_steps, state_size)
+training_losses = train_network(200,num_steps, state_size)

@@ -2,3 +2,4 @@ summary/*
 *.pyc
 *.e*
 *.o*
+*.json
