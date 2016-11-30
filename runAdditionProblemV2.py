@@ -35,7 +35,7 @@ sigmas = None
 if layer_type == 8:
     rnn_outputs, stacked_sigmas = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
 else:
-    rnn_outputs, = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
+    rnn_outputs, _ = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
 
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes])
@@ -48,7 +48,7 @@ prediction = tf.squeeze(prediction)
 # print("pred")
 # print(prediction)
 loss = tf.reduce_mean(tf.square(y - prediction))
-regularization_loss = tf.constant(0)
+regularization_loss = 0
 if layer_type == 8:
     for sigmas in stacked_sigmas:
         for sigma in sigmas:
@@ -113,9 +113,9 @@ def train_network(num_epochs, num_steps, state_size=4):
         training_loss = 0
         test_loss = 0
 
-    tl = timeline.Timeline(run_metadata.step_stats)
-    ctf = tl.generate_chrome_trace_format()
-    with open('./timelines/additionV2.json', 'w') as f:
-        f.write(ctf)
+    # tl = timeline.Timeline(run_metadata.step_stats)
+    # ctf = tl.generate_chrome_trace_format()
+    # with open('./timelines/additionV2.json', 'w') as f:
+    #     f.write(ctf)
 
 training_losses = train_network(200,num_steps, state_size)
