@@ -6,40 +6,45 @@ import time
 import sys
 from tensorflow.python.client import timeline
 
+prob = 0.3
+
+def gen_data(size, num_steps, batch_size):
+    num_batches = size/(num_steps * batch_size)
+    X = np.random.uniform(0,1, size=[num_batches, batch_size, num_steps, 2])
+    Y = np.zeros(shape=[num_batches, batch_size])
+    for i, batch in enumerate(X):
+        for j, data_str in enumerate(batch):
+            sum = 0.0
+            for k, step in enumerate(data_str):
+                ran = np.random.uniform(0,1)
+                if ran < prob:
+                    X[i][j][k][1] = 1
+                    sum += step[0]
+                else:
+                    X[i][j][k][1] = 0
+            Y[i][j] = sum
+
+    return X, Y
 
 
-def gen_data(size, indeces, num_steps):
-    X = np.array(np.random.choice(2, size=(size,)))
-    Y = []
-    for i in range(size):
-        acc = 0
-        for idx in indeces:
-            if i%num_steps >= idx:
-                acc += X[i-idx]
-        # Y.append(i%num_steps)
-        Y.append(acc)
-    return X, np.array(Y)
+def gen_test_data(num_steps, num_runs):
+    X = np.random.uniform(0,1, size=[num_runs, num_steps, 2])
+    Y = np.zeros(shape=[num_runs])
 
-# adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/reader.py
-def gen_batch(raw_data, batch_size, num_steps):
-    raw_x, raw_y = raw_data
-    data_length = len(raw_x)
+    for j, run in enumerate(X):
+        sum = 0.0
+        for k, step in enumerate(run):
+            ran = np.random.uniform(0,1)
+            if ran < prob:
+                X[j][k][1] = 1
+                sum += step[0]
+            else:
+                X[j][k][1] = 0
+        Y[j] = sum
 
-    # partition raw data into batches and stack them vertically in a data matrix
-    batch_partition_length = data_length // batch_size
-    data_x = np.zeros([batch_size, batch_partition_length], dtype=np.int32)
-    data_y = np.zeros([batch_size, batch_partition_length], dtype=np.int32)
-    for i in range(batch_size):
-        data_x[i] = raw_x[batch_partition_length * i:batch_partition_length * (i + 1)]
-        data_y[i] = raw_y[batch_partition_length * i:batch_partition_length * (i + 1)]
-    # further divide batch partitions into num_steps for truncated backprop
-    epoch_size = batch_partition_length // num_steps
+    return X, Y
 
-    for i in range(epoch_size):
-        x = data_x[:, i * num_steps:(i + 1) * num_steps]
-        y = data_y[:, i * num_steps:(i + 1) * num_steps]
-        yield (x, y)
 
-def gen_epochs(n, num_steps, num_data_points, indeces, batch_size):
-    for i in range(n):
-        yield gen_batch(gen_data(num_data_points, indeces, num_steps), batch_size, num_steps)
+def gen_epochs(num_epochs, num_data_points, num_steps, batch_size):
+    for i in range(num_epochs):
+        yield gen_data(num_data_points, num_steps, batch_size)

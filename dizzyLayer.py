@@ -137,6 +137,10 @@ class DizzyRNNCellBottom(tf.nn.rnn_cell.RNNCell):
         return self._num_units
 
   def __call__(self, inputs, state, scope=None):
+        print("state")
+        print(state)
+        print("inputs")
+        print(inputs)
         with vs.variable_scope(scope or type(self).__name__):
 
             state_out = DizzyLayerV3(tf.transpose(state), self._num_units, self._num_params,
@@ -147,7 +151,7 @@ class DizzyRNNCellBottom(tf.nn.rnn_cell.RNNCell):
             state_bias = vs.get_variable(
                 "State_Bias", [self._num_units],
                 dtype=tf.float32,
-                initializer=init_ops.constant_initializer(dtype=tf.float32))
+                initializer=init_ops.constant_initializer(dtype=tf.float32),)
             state_out = state_out + state_bias
 
             input_out = _linear([inputs], self._num_units, True)
