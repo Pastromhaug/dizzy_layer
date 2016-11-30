@@ -1,14 +1,8 @@
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3, DizzyRNNCellBottom
-import time
-import sys
-from tensorflow.python.client import timeline
 
-prob = 0.025
-
-def gen_data(size, num_steps, batch_size):
+def genData(size, num_steps, batch_size):
+    prob = 0.025
     num_batches = size/(num_steps * batch_size)
     X = np.random.uniform(0,1, size=[num_batches, batch_size, num_steps, 2])
     Y = np.zeros(shape=[num_batches, batch_size])
@@ -26,6 +20,6 @@ def gen_data(size, num_steps, batch_size):
 
     return X, Y
 
-def gen_epochs(num_epochs, num_data_points, num_steps, batch_size):
+def genEpochs(num_epochs, num_data_points, num_steps, batch_size):
     for i in range(num_epochs):
-        yield gen_data(num_data_points, num_steps, batch_size)
+        yield genData(num_data_points, num_steps, batch_size)

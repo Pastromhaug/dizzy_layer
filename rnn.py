@@ -1,44 +1,23 @@
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from dizzyLayer import DizzyRNNCellV1, DizzyRNNCellV2, DizzyRNNCellV3, DizzyRNNCellBottom
-import time
 import sys
 from tensorflow.python.client import timeline
-from gen_data import gen_epochs, gen_data
+
+from data.genAdditionProblemData import genData, genEpochs
+from utils.buildRNNCells import buildRNNCells
 
 #global config variables
-num_steps = 200 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 2 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 500
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
-num_data_points = 200000
+num_data_points = 2000
 num_classes = 1
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
 
-if layer_type == 1:
-    rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
-elif layer_type == 2:
-    rnn_cell = tf.nn.rnn_cell.BasicRNNCell(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
-elif layer_type == 3:
-    rnn_cell = DizzyRNNCellV1(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
-elif layer_type == 4:
-    rnn_cell = DizzyRNNCellV2(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
-elif layer_type == 5:
-    rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
-elif layer_type == 6:
-    rnn_cell = DizzyRNNCellV3(state_size)
-    stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-        [DizzyRNNCellBottom(state_size)] + [rnn_cell] * (num_stacked-1))
+stacked_cell = buildRNNCells(layer_type, state_size, num_stacked)
 
 # model
 x = tf.placeholder(tf.float32, [batch_size, num_steps, 2], name='input_placeholder')
@@ -63,15 +42,6 @@ prediction = tf.squeeze(prediction)
 loss = tf.reduce_mean(tf.square(y - prediction))
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss)
 
-# x_test = tf.placeholder(tf.float32, [num_test_runs, num_steps, 2], name='test_input_placeholder')
-# y_test = tf.placeholder(tf.float32, [num_test_runs], name='test_labels_placeholder')
-
-# test_inputs = tf.unpack(x_test, num_steps, 1)
-# test_rnn_outputs, test_final_state = tf.nn.rnn(stacked_cell, test_inputs, initial_state=init_state)
-
-# test_prediction = tf.matmul(test_rnn_outputs[-1], W) + b
-# test_loss = tf.reduce_mean(tf.square(y - test_prediction))
-
 test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
 
 
@@ -94,9 +64,9 @@ def train_network(num_epochs, num_steps, state_size=4):
     # start_time = time.time()
     training_losses = []
 
-    (test_X_epoch,test_Y_epoch) = gen_data(num_data_points, num_steps, batch_size)
+    (test_X_epoch,test_Y_epoch) = genData(num_data_points, num_steps, batch_size)
 
-    for idx, (X_epoch,Y_epoch) in enumerate(gen_epochs(num_epochs, num_data_points, num_steps, batch_size)):
+    for idx, (X_epoch,Y_epoch) in enumerate(genEpochs(num_epochs, num_data_points, num_steps, batch_size)):
 
         training_loss = 0
         num_batches = 0
