@@ -3,16 +3,16 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-from data.genAdditionProblemData import genData, genEpochs
+from data.genAdditionProblemV2Data import genData, genEpochs
 from utils.buildRNNCells import buildRNNCells
 
 #global config variables
-num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 3 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 500
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
-num_data_points = 20000
+num_data_points = 1500
 num_classes = 1
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
@@ -52,7 +52,7 @@ run_metadata = tf.RunMetadata()
 
 loss_summary = tf.scalar_summary('train loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
 summary = tf.merge_summary([loss_summary])
-train_writer = tf.train.SummaryWriter('./tensorboard/addition', sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorboard/additionV2', sess.graph)
 
 
 def train_network(num_epochs, num_steps, state_size=4):
@@ -102,7 +102,7 @@ def train_network(num_epochs, num_steps, state_size=4):
 
     tl = timeline.Timeline(run_metadata.step_stats)
     ctf = tl.generate_chrome_trace_format()
-    with open('./timelines/addition.json', 'w') as f:
+    with open('./timelines/additionV2.json', 'w') as f:
         f.write(ctf)
 
 training_losses = train_network(200,num_steps, state_size)
