@@ -16,6 +16,8 @@ num_data_points = 1500
 num_classes = 1
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
+if layer_type == 8:
+    Lambda = float(sys.argv[5])
 
 stacked_cell = buildRNNCells(layer_type, state_size, num_stacked)
 
@@ -27,7 +29,13 @@ init_state = stacked_cell.zero_state(batch_size, tf.float32)
 
 inputs = tf.unpack(x, num_steps, 1)
 # print(inputs)s
-rnn_outputs, final_state = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
+
+sigmas = None
+
+if layer_type == 8:
+    rnn_outputs, stacked_sigmas = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
+else:
+    rnn_outputs, = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
 
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes])
@@ -40,7 +48,12 @@ prediction = tf.squeeze(prediction)
 # print("pred")
 # print(prediction)
 loss = tf.reduce_mean(tf.square(y - prediction))
-train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss)
+regularization_loss = tf.constant(0)
+if layer_type == 8:
+    for sigmas in stacked_sigmas:
+        for sigma in sigmas:
+            regularization_loss += regularize_spread(sigma, Lambda)
+train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
 
 test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
 

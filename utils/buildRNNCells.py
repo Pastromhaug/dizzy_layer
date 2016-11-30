@@ -4,6 +4,7 @@ from layers.dizzyRNNCellOpt import DizzyRNNCellOpt
 from layers.dizzyRNNCellv1 import DizzyRNNCellV1
 from layers.dizzyRNNCellv2 import DizzyRNNCellV2
 from layers.iRNNCell import IRNNCell
+from layers.decompRNNCell import DecompRNNCell
 
 def buildRNNCells(layer_type, state_size, num_stacked):
     if layer_type == 1:
@@ -31,6 +32,11 @@ def buildRNNCells(layer_type, state_size, num_stacked):
     elif layer_type == 7:
         bottom_cell = IRNNCell(state_size, bottom=True)
         rnn_cell = IRNNCell(state_size, bottom=False)
+        stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+            [bottom_cell] + [rnn_cell] * (num_stacked-1))
+    elif layer_type == 8:
+        bottom_cell = DecompRNNCell(state_size, bottom=True)
+        rnn_cell = DecompRNNCell(state_size, bottom=False)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
             [bottom_cell] + [rnn_cell] * (num_stacked-1))
 
