@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from tensorflow.python.ops.math_ops import tanh
 
 from ..utils.linearTransformWithBias import linearTransformWithBias
 

@@ -1,9 +1,9 @@
 import tensorflow as tf
 import numpy as np
 from layers.dizzyRNNCellOpt import DizzyRNNCellOpt
-from layers.dizzyRNNCellOptBottom import DizzyRNNCellOptBottom
 from layers.dizzyRNNCellv1 import DizzyRNNCellV1
 from layers.dizzyRNNCellv2 import DizzyRNNCellV2
+from layers.iRNNCell import IRNNCell
 
 def buildRNNCells(layer_type, state_size, num_stacked):
     if layer_type == 1:
@@ -24,8 +24,15 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
     elif layer_type == 6:
-        rnn_cell = DizzyRNNCellOpt(state_size)
+        bottom_cell = DizzyRNNCellOpt(state_size, bottom=True)
+        rnn_cell = DizzyRNNCellOpt(state_size, bottom=False)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-            [DizzyRNNCellOptBottom(state_size)] + [rnn_cell] * (num_stacked-1))
+            [bottom_cell] + [rnn_cell] * (num_stacked-1))
+    elif layer_type == 7:
+        bottom_cell = IRNNCell(state_size, bottom=True)
+        rnn_cell = IRNNCell(state_size, bottom=False)
+        stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+            [bottom_cell] + [rnn_cell] * (num_stacked-1))
+
 
     return stacked_cell

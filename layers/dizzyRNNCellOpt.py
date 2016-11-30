@@ -9,7 +9,7 @@ from utils.rotationTransform import rotationTransform
 
 class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
-  def __init__(self, num_units):
+  def __init__(self, num_units, bottom=True):
         self._num_units = num_units
         self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
         self._num_params = num_units*(num_units-1)/2
@@ -20,6 +20,7 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
         self._cos_idxs = cos_idxs
         self._sin_idxs = sin_idxs
         self._nsin_idxs = nsin_idxs
+        self._bottom = bottom
 
   @property
   def state_size(self):
@@ -43,16 +44,19 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
                 initializer=init_ops.constant_initializer(dtype=tf.float32))
             state_out = state_out + state_bias
 
-            input_out = rotationTransform(tf.transpose(inputs), self._num_units, self._num_params,
-                self._cos_list,  self._sin_list, self._nsin_list,
-                self._cos_idxs, self._sin_idxs, self._nsin_idxs)
-            input_out = tf.transpose(input_out)
+            if self._bottom == True:
+                input_out = linearTransformWithBias([inputs], self._num_units, True)
+            else:
+                input_out = rotationTransform(tf.transpose(inputs), self._num_units, self._num_params,
+                    self._cos_list,  self._sin_list, self._nsin_list,
+                    self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+                input_out = tf.transpose(input_out)
 
-            input_bias = vs.get_variable(
-                "Input_Bias", [self._num_units],
-                dtype=tf.float32,
-                initializer=init_ops.constant_initializer(dtype=tf.float32))
-            input_out = input_out + input_bias
+                input_bias = vs.get_variable(
+                    "Input_Bias", [self._num_units],
+                    dtype=tf.float32,
+                    initializer=init_ops.constant_initializer(dtype=tf.float32))
+                input_out = input_out + input_bias
 
             output = tf.abs(state_out + input_out)
         return output, output
