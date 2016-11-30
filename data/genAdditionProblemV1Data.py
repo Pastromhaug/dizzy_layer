@@ -15,6 +15,7 @@ def genData(num_data_points, num_steps, batch_size, indices):
 
 # adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/reader.py
 def genBatch(raw_data, batch_size, num_steps):
+    output = []
     raw_x, raw_y = raw_data
     data_length = len(raw_x)
 
@@ -31,7 +32,9 @@ def genBatch(raw_data, batch_size, num_steps):
     for i in range(epoch_size):
         x = data_x[:, i * num_steps:(i + 1) * num_steps]
         y = data_y[:, i * num_steps:(i + 1) * num_steps]
-        yield (x, y)
+        # yield (x, y)
+        output.append([x,y])
+    return output
 
 def genEpochs(num_epochs, num_data_points, num_steps, batch_size, indices):
     for i in range(num_epochs):
