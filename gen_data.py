@@ -6,7 +6,7 @@ import time
 import sys
 from tensorflow.python.client import timeline
 
-prob = 0.3
+prob = 0.025
 
 def gen_data(size, num_steps, batch_size):
     num_batches = size/(num_steps * batch_size)
@@ -25,25 +25,6 @@ def gen_data(size, num_steps, batch_size):
             Y[i][j] = sum
 
     return X, Y
-
-
-def gen_test_data(num_steps, num_runs):
-    X = np.random.uniform(0,1, size=[num_runs, num_steps, 2])
-    Y = np.zeros(shape=[num_runs])
-
-    for j, run in enumerate(X):
-        sum = 0.0
-        for k, step in enumerate(run):
-            ran = np.random.uniform(0,1)
-            if ran < prob:
-                X[j][k][1] = 1
-                sum += step[0]
-            else:
-                X[j][k][1] = 0
-        Y[j] = sum
-
-    return X, Y
-
 
 def gen_epochs(num_epochs, num_data_points, num_steps, batch_size):
     for i in range(num_epochs):
