@@ -4,6 +4,7 @@ import sys
 from tensorflow.python.client import timeline
 
 from utils.buildRNNCells import buildRNNCells
+from utils.regularizeSpread import regularizeSpread
 from data.genCopyProblemData import genEpochs, genTestData
 
 #global config variables
@@ -17,17 +18,19 @@ num_classes = 10
 
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
+if layer_type == 8:
+    lambda_reg = float(sys.argv[5])
 
-stacked_cell = buildRNNCells(layer_type, state_size, num_stacked)
+rnn = buildRNNCells(layer_type, state_size, num_stacked)
 
 # model
 x = tf.placeholder(tf.float32, [batch_size, num_steps, num_classes+1], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
 
-init_state = stacked_cell.zero_state(batch_size, tf.float32)
+init_state = rnn.zero_state(batch_size, tf.float32)
 
 inputs = tf.unpack(x, num_steps, 1)
-rnn_outputs, final_state = tf.nn.rnn(stacked_cell, inputs, initial_state=init_state)
+rnn_outputs, final_state = tf.nn.rnn(rnn, inputs, initial_state=init_state)
 
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes + 1])
@@ -50,7 +53,12 @@ losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(logit, label) for \
 
 loss = tf.reduce_mean(losses)
 
-train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss)
+regularization_loss = 0
+if layer_type == 8:
+    sigma = rnn.get_sigma()
+    regularization_loss = regularizeSpread(sigma, lambda_reg)
+
+train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
 
 test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d' % (layer_type, state_size), loss)
 
