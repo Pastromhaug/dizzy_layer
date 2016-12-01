@@ -38,25 +38,18 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
                 self._cos_idxs, self._sin_idxs, self._nsin_idxs)
             state_out = tf.transpose(state_out)
 
-            state_bias = vs.get_variable(
-                "State_Bias", [self._num_units],
-                dtype=tf.float32,
-                initializer=init_ops.constant_initializer(dtype=tf.float32))
-            state_out = state_out + state_bias
-
             if self._bottom == True:
-                input_out = linearTransformWithBias([inputs], self._num_units, True)
+                input_out = linearTransformWithBias([inputs], self._num_units, bias=False)
             else:
                 input_out = rotationTransform(tf.transpose(inputs), self._num_units, self._num_params,
                     self._cos_list,  self._sin_list, self._nsin_list,
                     self._cos_idxs, self._sin_idxs, self._nsin_idxs)
                 input_out = tf.transpose(input_out)
 
-                input_bias = vs.get_variable(
-                    "Input_Bias", [self._num_units],
-                    dtype=tf.float32,
-                    initializer=init_ops.constant_initializer(dtype=tf.float32))
-                input_out = input_out + input_bias
+            bias = vs.get_variable(
+                "Bias", [self._num_units],
+                dtype=tf.float32,
+                initializer=init_ops.constant_initializer(dtype=tf.float32))
 
-            output = tf.abs(state_out + input_out)
+            output = tf.abs(state_out + input_out + bias)
         return output, output
