@@ -3,19 +3,19 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-from data.genFilterProblemData import genData, genEpochs, genBatch
+from data.genFilterProblemData import genData, genEpochs, genBatch, getTestData
 from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
 num_epochs = 200
-num_steps = 5 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 50
+num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 500
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 250
+num_data_points = 50000
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [30,17,3]
@@ -89,7 +89,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     sess.run(tf.initialize_all_variables())
     training_losses = []
 
-    test_epoch = genBatch(genData(num_data_points, num_steps, batch_size, indices), batch_size, num_steps)
+    test_epoch = getTestData()
 
     for idx, epoch in enumerate(genEpochs(num_epochs, num_data_points, num_steps, batch_size, indices)):
         training_loss = 0
