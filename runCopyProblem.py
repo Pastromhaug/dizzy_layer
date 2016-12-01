@@ -8,13 +8,13 @@ from utils.buildRNNCells import buildRNNCells
 from data.genCopyProblemData import genEpochs, genTestData
 
 #global config variables
-num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 100
+num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 500
 
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
-num_data_points = 20000
+num_data_points = 200000
 num_classes = 10
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
