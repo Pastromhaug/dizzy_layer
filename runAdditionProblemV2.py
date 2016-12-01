@@ -32,6 +32,9 @@ inputs = tf.unpack(x, num_steps, 1)
 # print(inputs)s
 
 rnn_outputs, _ = tf.nn.rnn(rnn, inputs, initial_state=init_state)
+sigma = None
+if layer_type == 8:
+    sigma = rnn.get_sigma()
 
 with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes])
@@ -46,7 +49,7 @@ prediction = tf.squeeze(prediction)
 loss = tf.reduce_mean(tf.square(y - prediction))
 regularization_loss = 0
 if layer_type == 8:
-    regularization_loss += regularizeSpread(rnn.get_sigma(), Lambda)
+    regularization_loss = regularizeSpread(sigma, Lambda)
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
 
 test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
@@ -58,7 +61,12 @@ run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
 run_metadata = tf.RunMetadata()
 
 loss_summary = tf.scalar_summary('train loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
-summary = tf.merge_summary([loss_summary])
+if layer_type == 8:
+    regularization_loss_summary = tf.scalar_summary('regularization loss', regularization_loss)
+    sigma_summary = tf.histogram_summary('sigma', sigma)
+    summary = tf.merge_summary([loss_summary, regularization_loss_summary, sigma_summary])
+else:
+    summary = tf.merge_summary([loss_summary])
 train_writer = tf.train.SummaryWriter('./tensorboard/additionV2', sess.graph)
 
 
