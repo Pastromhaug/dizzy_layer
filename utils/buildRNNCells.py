@@ -35,10 +35,10 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
             [bottom_cell] + [rnn_cell] * (num_stacked-1))
     elif layer_type == 8:
-        bottom_cell = DecompRNNCell(state_size, bottom=True)
-        rnn_cell = DecompRNNCell(state_size, bottom=False)
-        stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-            [bottom_cell] + [rnn_cell] * (num_stacked-1))
+        stacked_cell = DecompRNNCell(state_size, bottom=True)
+        # rnn_cell = DecompRNNCell(state_size, bottom=False)
+        # stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+        #     [bottom_cell] + [rnn_cell] * (num_stacked-1))
 
 
     return stacked_cell
