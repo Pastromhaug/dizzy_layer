@@ -3,7 +3,7 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-from data.genAdditionProblemData import genData, genEpochs
+from data.genAdditionProblemData import genData, genEpochs, getTestData
 from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
@@ -80,7 +80,9 @@ def train_network(num_epochs, num_steps, state_size=4):
     # start_time = time.time()
     training_losses = []
 
-    (test_X_epoch,test_Y_epoch) = genData(num_data_points, num_steps, batch_size)
+    # (test_X_epoch,test_Y_epoch) = genData(num_data_points, num_steps, batch_size)
+    test_X_epoch,test_Y_epoch = getTestData()
+
 
     for idx, (X_epoch,Y_epoch) in enumerate(genEpochs(num_epochs, num_data_points, num_steps, batch_size)):
 

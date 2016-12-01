@@ -23,3 +23,12 @@ def genData(size, num_steps, batch_size):
 def genEpochs(num_epochs, num_data_points, num_steps, batch_size):
     for i in range(num_epochs):
         yield genData(num_data_points, num_steps, batch_size)
+
+def genTestData(num_steps, batch_size):
+    X, Y = genData(num_steps * batch_size, num_steps, batch_size)
+
+    np.save('data/addX.npy', X)
+    np.save('data/addY.npy', Y)
+
+def getTestData():
+    return np.load('data/addX.npy'), np.load('data/addY.npy')
