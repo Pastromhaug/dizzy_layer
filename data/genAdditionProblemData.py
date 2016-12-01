@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 def genData(size, num_steps, batch_size):
-    prob = 0.025
+    prob = 0.1
     num_batches = size/(num_steps * batch_size)
     X = np.random.uniform(0,1, size=[num_batches, batch_size, num_steps, 2])
     Y = np.zeros(shape=[num_batches, batch_size])

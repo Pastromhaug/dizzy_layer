@@ -8,13 +8,14 @@ from utils.regularizeSpread import regularizeSpread
 from data.genCopyProblemData import genEpochs, genTestData
 
 #global config variables
-num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 500
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
-num_data_points = 10000
-num_classes = 4
+num_data_points = 200000
+num_classes = 10
+
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
 if layer_type == 8:
@@ -39,7 +40,7 @@ logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs]
 logits = tf.transpose(logits, [1, 0, 2])
 
 predictions = tf.unpack(logits)
-predictions = [tf.argmax(prediction, axis=1) for prediction in predictions]
+predictions = [tf.argmax(prediction, 1) for prediction in predictions]
 
 labels = [tf.squeeze(i, squeeze_dims=[0]) for i in tf.split(0, batch_size, y)]
 
