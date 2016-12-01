@@ -3,19 +3,20 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-from data.genAdditionProblemV1Data import genData, genEpochs, genBatch
+from data.genFilterProblemData import genData, genEpochs, genBatch
 from utils.buildRNNCells import buildRNNCells
 
 #global config variables
-num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 5
-state_size = int(sys.argv[1])
-layer_type = int(sys.argv[2])
-learning_rate = float(sys.argv[3])
-num_data_points = 150
-num_stacked = int(sys.argv[4])
+num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 500
+summary_name = sys.argv[1]
+state_size = int(sys.argv[2])
+layer_type = int(sys.argv[3])
+learning_rate = float(sys.argv[4])
+num_data_points = 250000
+num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
-indices = [20,8,3]
+indices = [30,17,3]
 num_classes = len(indices)+1
 
 stacked_cell = buildRNNCells(layer_type, state_size, num_stacked)
@@ -55,24 +56,16 @@ pred_labels = tf.cast(tf.pack(pred_labels), tf.int32)
 # correct_prediction = [tf.equal(p,l) for p,l in zip(pred_labels, y_as_list)]
 correct_prediction = tf.equal(pred_labels, y_as_list)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-train_accuracy_summary = tf.scalar_summary('train acc, layer_type: %d, state_size: %d, lr: %d, stacked: %d'
-                            % (layer_type, state_size, learning_rate, num_stacked),
-                            accuracy)
-train_loss_summary = tf.scalar_summary('train loss layer_type: %d, state_size: %d, lr: %d, stacked: %d'
-                            % (layer_type, state_size, learning_rate, num_stacked),
-                            total_loss)
-test_accuracy_summary = tf.scalar_summary('test acc, layer_type: %d, state_size: %d, lr: %d, stacked: %d'
-                            % (layer_type, state_size, learning_rate, num_stacked),
-                            accuracy)
-test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d, lr: %f, stacked: %d'
-                            % (layer_type, state_size, learning_rate, num_stacked),
-                            total_loss)
+train_accuracy_summary = tf.scalar_summary('acc_train', accuracy)
+train_loss_summary = tf.scalar_summary('loss_train', total_loss)
+test_accuracy_summary = tf.scalar_summary('acc_test', accuracy)
+test_loss_summary = tf.scalar_summary('loss_test', total_loss)
 
 train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary])
 test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 sess = tf.Session()
-train_writer = tf.train.SummaryWriter('./tensorboard/additionV1', sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
 
 
 # accuracies = tf.equal(tf.argmax(logits, 0), tf.argmax(y,0), 0)

@@ -3,7 +3,7 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-from data.genAdditionProblemV2Data import genData, genEpochs
+from data.genAdditionProblemData import genData, genEpochs
 from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
