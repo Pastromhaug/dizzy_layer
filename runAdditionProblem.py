@@ -8,22 +8,12 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-<<<<<<< HEAD:runAdditionProblemV2.py
-num_steps = 3 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 50
-summary_name = sys.argv[1]
-state_size = int(sys.argv[2])
-layer_type = int(sys.argv[3])
-learning_rate = float(sys.argv[4])
-num_data_points = 150
-=======
 num_steps =30 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
 num_data_points = 15000
->>>>>>> gpu:runAdditionProblem.py
 num_classes = 1
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
