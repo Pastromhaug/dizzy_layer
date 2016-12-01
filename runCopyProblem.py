@@ -10,6 +10,7 @@ from data.genCopyProblemData import genEpochs, genTestData
 #global config variables
 num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 100
+
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])

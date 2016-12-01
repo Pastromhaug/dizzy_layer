@@ -8,11 +8,11 @@ from utils.buildRNNCells import buildRNNCells
 
 #global config variables
 num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 500
+batch_size = 5
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
-num_data_points = 150000
+num_data_points = 150
 num_stacked = int(sys.argv[4])
 num_test_runs = batch_size
 indices = [20,8,3]

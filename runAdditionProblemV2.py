@@ -7,8 +7,8 @@ from data.genAdditionProblemV2Data import genData, genEpochs
 from utils.buildRNNCells import buildRNNCells
 
 #global config variables
-num_steps = 3 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 500
+num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 50
 state_size = int(sys.argv[1])
 layer_type = int(sys.argv[2])
 learning_rate = float(sys.argv[3])
