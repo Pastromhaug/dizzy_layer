@@ -49,7 +49,7 @@ class DecompRNNCell(tf.nn.rnn_cell.RNNCell):
                 self._cos_idxs, self._sin_idxs, self._nsin_idxs)
             state_out = tf.transpose(state_out)
 
-            input_out = linearTransformWithBias([inputs], self._num_units, True)
+            input_out = linearTransformWithBias([inputs], self._num_units, bias=False)
 
             bias = vs.get_variable(
                 "Bias", [self._num_units],

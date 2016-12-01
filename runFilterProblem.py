@@ -79,7 +79,7 @@ else:
     test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 sess = tf.Session()
-train_writer = tf.train.SummaryWriter('./tensorboard4/' + summary_name, sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorboard_for_realz/' + summary_name, sess.graph)
 
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss + regularization_loss)
 
