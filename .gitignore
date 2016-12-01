@@ -3,3 +3,4 @@ summary/*
 *.e*
 *.o*
 *.json
+*.npy
