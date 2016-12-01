@@ -29,7 +29,6 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked)
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
-reg_const = tf.placeholder(tf.float32, [1], name='singular value regularization cosntant')
 init_state = rnn.zero_state(batch_size, tf.float32)
 
 x_one_hot = tf.one_hot(x, num_classes)
@@ -80,7 +79,7 @@ else:
     test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 sess = tf.Session()
-train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorboard4/' + summary_name, sess.graph)
 
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss + regularization_loss)
 
