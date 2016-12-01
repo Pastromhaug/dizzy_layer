@@ -26,24 +26,16 @@ class IRNNCell(tf.nn.rnn_cell.RNNCell):
   def __call__(self, inputs, state, scope=None):
     """Most basic RNN: output = new_state = activation(W * input + U * state + B)."""
     with vs.variable_scope(scope or type(self).__name__):  # "BasicRNNCell"
-        state_out = linearTransformIdentityInit(state, self._num_units, True)
-        state_bias = vs.get_variable(
-            "state_bias", [self._num_units],
-            dtype=tf.float32,
-            initializer=init_ops.constant_initializer(dtype=tf.float32))
-        state_out = state_out + state_bias
-        state_act = tf.nn.relu(state_out)
+        state_out = linearTransformIdentityInit(state, self._num_units)
 
         if self._bottom == True:
-            input_act = linearTransformWithBias([inputs], self._num_units, True)
+            input_out = linearTransformWithBias([inputs], self._num_units, bias=False)
         else:
-            input_out = linearTransformIdentityInit(inputs, self._num_units, True)
-            input_bias = vs.get_variable(
-                "input_bias", [self._num_units],
-                dtype=tf.float32,
-                initializer=init_ops.constant_initializer(dtype=tf.float32))
-            input_out = input_out + input_bias
-            input_act = tf.nn.relu(input_out)
+            input_out = linearTransformIdentityInit(inputs, self._num_units)
+        bias = vs.get_variable(
+            "input_bias", [self._num_units],
+            dtype=tf.float32,
+            initializer=init_ops.constant_initializer(dtype=tf.float32))
 
-    output = state_act + input_act
+    output = tf.nn.relu(state_out + input_out + bias)
     return output, output
