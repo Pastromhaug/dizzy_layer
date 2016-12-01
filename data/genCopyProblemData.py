@@ -23,7 +23,7 @@ def genBatch(size, num_steps, batch_size, num_classes):
 
     return X, Y
 
-def genTestData(num_steps, num_runs, num_classes):
+def makeTestData(num_steps, num_runs, num_classes):
     trigger = num_steps // 2
     X = np.zeros(shape=[num_runs, num_steps, num_classes + 1])
     Y = np.zeros(shape=[num_runs, num_steps])
@@ -45,3 +45,12 @@ def genTestData(num_steps, num_runs, num_classes):
 def genEpochs(num_epochs, num_data_points, num_steps, batch_size, num_classes):
     for i in range(num_epochs):
         yield genBatch(num_data_points, num_steps, batch_size, num_classes)
+
+def genTestData(num_steps, batch_size, num_classes):
+    X, Y = makeTestData(num_steps, batch_size, num_classes)
+
+    np.save('data/copyX.npy', X)
+    np.save('data/copyY.npy', Y)
+
+def getTestData():
+    return np.load('data/copyX.npy'), np.load('data/copyY.npy')
