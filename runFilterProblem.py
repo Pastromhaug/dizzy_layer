@@ -5,32 +5,38 @@ from tensorflow.python.client import timeline
 
 from data.genFilterProblemData import genData, genEpochs, genBatch
 from utils.buildRNNCells import buildRNNCells
+from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 500
+num_steps = 5 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 250000
+num_data_points = 250
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [30,17,3]
 num_classes = len(indices)+1
+if layer_type == 8:
+    Lambda = float(sys.argv[6])
 
-stacked_cell = buildRNNCells(layer_type, state_size, num_stacked)
+rnn = buildRNNCells(layer_type, state_size, num_stacked)
 
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
 # init_state = [tf.zeros([batch_size, state_size]) for i in range(num_stacked)]
-init_state = stacked_cell.zero_state(batch_size, tf.float32)
+init_state = rnn.zero_state(batch_size, tf.float32)
 
 x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
 
-rnn_outputs, final_state = tf.nn.rnn(stacked_cell, rnn_inputs, initial_state=init_state)
+rnn_outputs, final_state = tf.nn.rnn(rnn, rnn_inputs, initial_state=init_state)
+sigma = None
+if layer_type == 8:
+    sigma = rnn.get_sigma()
 
 [tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
 # tf.histogram_summary('hidden state hist/' + type(self).__name__, output)
@@ -49,6 +55,9 @@ losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(logit,label) for \
             logit, label in zip(logits, y_as_list)]
 
 total_loss = tf.reduce_mean(losses)
+regularization_loss = 0
+if layer_type == 8:
+    regularization_loss = regularizeSpread(sigma, Lambda)
 
 pred_labels = [tf.argmax(log,1) for log in predictions]
 y_as_list = tf.pack(y_as_list)
@@ -61,8 +70,14 @@ train_loss_summary = tf.scalar_summary('loss_train', total_loss)
 test_accuracy_summary = tf.scalar_summary('acc_test', accuracy)
 test_loss_summary = tf.scalar_summary('loss_test', total_loss)
 
-train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary])
-test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
+if layer_type == 8:
+    regularization_loss_summary = tf.scalar_summary("regularization_loss", regularization_loss)
+    sigma_summary = tf.histogram_summary("sigma", sigma)
+    train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary, regularization_loss_summary, sigma_summary])
+    test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
+else:
+    train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary])
+    test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 sess = tf.Session()
 train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
@@ -70,7 +85,7 @@ train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.grap
 
 # accuracies = tf.equal(tf.argmax(logits, 0), tf.argmax(y,0), 0)
 # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
+train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss + regularization_loss)
 
 # start_time = time.time()
 # print("start_time1 %d" % start_time)
