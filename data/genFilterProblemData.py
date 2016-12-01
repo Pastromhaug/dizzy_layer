@@ -36,6 +36,10 @@ def genBatch(raw_data, batch_size, num_steps):
         output.append([x,y])
     return output
 
+def genTestData(num_steps, batch_size, indices):
+    data = genBatch(genData(num_steps * batch_size, num_steps, batch_size, indices), batch_size, num_steps)
+    np.save('data/filterData.npy', data)
+
 def genEpochs(num_epochs, num_data_points, num_steps, batch_size, indices):
     for i in range(num_epochs):
         yield genBatch(genData(num_data_points, num_steps, batch_size, indices), batch_size, num_steps)
