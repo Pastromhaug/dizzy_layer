@@ -21,7 +21,6 @@ class DecompRNNCell(tf.nn.rnn_cell.RNNCell):
         self._sin_idxs = sin_idxs
         self._nsin_idxs = nsin_idxs
         self._bottom = bottom
-        self.sigma = None
 
   @property
   def state_size(self):
