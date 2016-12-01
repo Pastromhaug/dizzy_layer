@@ -8,17 +8,18 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_steps = 200 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 500
-state_size = int(sys.argv[1])
-layer_type = int(sys.argv[2])
-learning_rate = float(sys.argv[3])
-num_data_points = 100000
+num_steps = 3 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 50
+summary_name = sys.argv[1]
+state_size = int(sys.argv[2])
+layer_type = int(sys.argv[3])
+learning_rate = float(sys.argv[4])
+num_data_points = 150
 num_classes = 1
-num_stacked = int(sys.argv[4])
+num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 if layer_type == 8:
-    Lambda = float(sys.argv[5])
+    Lambda = float(sys.argv[6])
 
 rnn = buildRNNCells(layer_type, state_size, num_stacked)
 
@@ -52,7 +53,7 @@ if layer_type == 8:
     regularization_loss = regularizeSpread(sigma, Lambda)
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
 
-test_loss_summary = tf.scalar_summary('test loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
+test_loss_summary = tf.scalar_summary('test loss', loss)
 
 
 # sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
@@ -60,14 +61,14 @@ sess = tf.Session()
 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
 run_metadata = tf.RunMetadata()
 
-loss_summary = tf.scalar_summary('train loss layer_type: %d, state_size: %d, lr: %f, stacked: %d' % (layer_type, state_size, learning_rate, num_stacked), loss)
+loss_summary = tf.scalar_summary('train loss', loss)
 if layer_type == 8:
     regularization_loss_summary = tf.scalar_summary('regularization loss', regularization_loss)
     sigma_summary = tf.histogram_summary('sigma', sigma)
     summary = tf.merge_summary([loss_summary, regularization_loss_summary, sigma_summary])
 else:
     summary = tf.merge_summary([loss_summary])
-train_writer = tf.train.SummaryWriter('./tensorboard/additionV2', sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
 
 
 def train_network(num_epochs, num_steps, state_size=4):
