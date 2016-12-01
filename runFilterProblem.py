@@ -8,6 +8,7 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
+num_epochs = 200
 num_steps = 5 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
@@ -19,6 +20,7 @@ num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [30,17,3]
 num_classes = len(indices)+1
+Lambda = 0
 if layer_type == 8:
     Lambda = float(sys.argv[6])
 
@@ -27,7 +29,7 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked)
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
-# init_state = [tf.zeros([batch_size, state_size]) for i in range(num_stacked)]
+reg_const = tf.placeholder(tf.float32, [1], name='singular value regularization cosntant')
 init_state = rnn.zero_state(batch_size, tf.float32)
 
 x_one_hot = tf.one_hot(x, num_classes)
@@ -39,7 +41,6 @@ if layer_type == 8:
     sigma = rnn.get_sigma()
 
 [tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
-# tf.histogram_summary('hidden state hist/' + type(self).__name__, output)
 
 
 with tf.variable_scope('softmax'):
@@ -62,7 +63,6 @@ if layer_type == 8:
 pred_labels = [tf.argmax(log,1) for log in predictions]
 y_as_list = tf.pack(y_as_list)
 pred_labels = tf.cast(tf.pack(pred_labels), tf.int32)
-# correct_prediction = [tf.equal(p,l) for p,l in zip(pred_labels, y_as_list)]
 correct_prediction = tf.equal(pred_labels, y_as_list)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 train_accuracy_summary = tf.scalar_summary('acc_train', accuracy)
@@ -82,22 +82,12 @@ else:
 sess = tf.Session()
 train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
 
-
-# accuracies = tf.equal(tf.argmax(logits, 0), tf.argmax(y,0), 0)
-# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss + regularization_loss)
 
-# start_time = time.time()
-# print("start_time1 %d" % start_time)
 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
 run_metadata = tf.RunMetadata()
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
-    # with tf.Session() as sess:
-
-
     sess.run(tf.initialize_all_variables())
-    # print("---  min for  graph building ---",(time.time() - start_time)/60.0)
-    # start_time = time.time()
     training_losses = []
 
     test_epoch = genBatch(genData(num_data_points, num_steps, batch_size, indices), batch_size, num_steps)
@@ -112,23 +102,10 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         for step, (X, Y) in enumerate(epoch):
             train_num_steps += 1
 
-            (tr_losses, training_loss_, training_state, _, rnn_outputs_, final_state_,
-            logits_, predictions_, y_as_list_, losses_, total_loss_, pred_labels_, train_accuracy_,
-            correct_prediction_, train_summaries_) = \
-                sess.run([losses,
-                          total_loss,
-                          final_state,
+            (training_loss_, _ , train_accuracy_, train_summaries_) = \
+                sess.run([ total_loss,
                           train_step,
-                          rnn_outputs,
-                          final_state,
-                          logits,
-                          predictions,
-                          y_as_list,
-                          losses,
-                          total_loss,
-                          pred_labels,
                           accuracy,
-                          correct_prediction,
                           train_summaries],
                               feed_dict={x:X, y:Y},
                               options=run_options, run_metadata=run_metadata)
@@ -166,4 +143,4 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         f.write(ctf)
     return training_losses
 
-training_losses = train_network(200,num_steps, state_size)
+training_losses = train_network(num_epochs,num_steps, state_size)
