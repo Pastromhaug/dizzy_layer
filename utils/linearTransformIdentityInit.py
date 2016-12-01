@@ -6,7 +6,7 @@ from tensorflow.python.ops import variable_scope as vs
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import init_ops
 
-def linearTransformIdentityInit(arg, output_size, scope=None):
+def linearTransformIdentityInit(arg, output_size):
 
     ones = tf.ones(shape=[output_size])
     identity = tf.diag(ones)
