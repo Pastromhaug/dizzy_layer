@@ -16,11 +16,11 @@ def buildRNNCells(layer_type, state_size, num_stacked):
     elif layer_type == 3:
         rnn_cell = DizzyRNNCellV1(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-            [[rnn_cell] * num_stacked])
+            [rnn_cell] * num_stacked)
     elif layer_type == 4:
         rnn_cell = DizzyRNNCellV2(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-            [[rnn_cell] * num_stacked])
+            [rnn_cell] * num_stacked)
     elif layer_type == 5:
         rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)

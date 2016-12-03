@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-
+import math
 
 from tensorflow.python.ops import variable_scope as vs
 from utils.linearTransformWithBias import linearTransformWithBias
