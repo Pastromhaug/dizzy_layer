@@ -4,9 +4,9 @@ import sys
 from tensorflow.python.client import timeline
 
 thetas = tf.Variable(tf.random_uniform([5,5], 0, 2), name="thetas", dtype=tf.float32)
-cos = tf.cos(thetas)
+o = tf.cos(thetas)
 
-train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
+train_step = tf.train.AdagradOptimizer(0.1).minimize(o)
 sess = tf.Session()
 run_metadata = tf.RunMetadata()
 sess.run(tf.initialize_all_variables())
