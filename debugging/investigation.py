@@ -3,7 +3,7 @@ import tensorflow as tf
 import sys
 from tensorflow.python.client import timeline
 
-thetas = tf.Variable(tf.random_uniform([5,5], 0, 2*math.pi), name="thetas", dtype=tf.float32)
+thetas = tf.Variable(tf.random_uniform([5,5], 0, 2), name="thetas", dtype=tf.float32)
 cos = tf.cos(thetas)
 
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
