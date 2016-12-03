@@ -10,9 +10,8 @@ train_step = tf.train.AdagradOptimizer(0.1).minimize(o)
 sess = tf.Session()
 run_metadata = tf.RunMetadata()
 sess.run(tf.initialize_all_variables())
-run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-train_step_ = sess.run([train_step], options=run_options, run_metadata=run_metadata)
+train_step_ = sess.run([train_step], run_metadata=run_metadata)
 tl = timeline.Timeline(run_metadata.step_stats)
 ctf = tl.generate_chrome_trace_format()
-with open('.o.json', 'w') as f:
+with open('o.json', 'w') as f:
     f.write(ctf)
