@@ -9,13 +9,13 @@ from utils.regularizeSpread import regularizeSpread
 
 #global config variables
 num_epochs = 1
-num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 1 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 1000
+num_data_points = 50
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [15,8,3]
@@ -138,7 +138,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
 
     tl = timeline.Timeline(run_metadata.step_stats)
     ctf = tl.generate_chrome_trace_format()
-    with open('./timelines/additionV1.json', 'w') as f:
+    with open('full_new_tf.json', 'w') as f:
         f.write(ctf)
     return training_losses
 
