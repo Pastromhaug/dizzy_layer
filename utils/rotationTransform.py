@@ -9,9 +9,9 @@ def rotationTransform(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, s
     sin = tf.sin(thetas)
     nsin = tf.neg(sin)
 
-    cos_thetas = tf.gather(cos, cos_idxs)
-    sin_thetas = tf.gather(sin, sin_idxs)
-    nsin_thetas = tf.gather(nsin, nsin_idxs)
+    cos_thetas = tf.squeeze(tf.gather(cos, cos_idxs))
+    sin_thetas = tf.squeeze(tf.gather(sin, sin_idxs))
+    nsin_thetas = tf.squeeze(tf.gather(nsin, nsin_idxs))
 
     shape = tf.constant([2*n_prime, n], dtype=tf.int64)
     sparse_cos = tf.SparseTensor(indices=cos_list, values=cos_thetas, shape=shape)
