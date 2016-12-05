@@ -8,14 +8,14 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_epochs = 300
+num_epochs = 1
 num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 10000
+num_data_points = 1000
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [15,8,3]
