@@ -1,10 +1,12 @@
 import tensorflow as tf
 import numpy as np
 from layers.dizzyRNNCellOpt import DizzyRNNCellOpt
+from layers.dizzyRNNCellOpt2 import DizzyRNNCellOpt2
 from layers.dizzyRNNCellv1 import DizzyRNNCellV1
 from layers.dizzyRNNCellv2 import DizzyRNNCellV2
 from layers.iRNNCell import IRNNCell
 from layers.decompRNNCell import DecompRNNCell
+from utils.buildRotations import buildTransform
 
 def buildRNNCells(layer_type, state_size, num_stacked):
     if layer_type == 1:
@@ -39,6 +41,12 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         # rnn_cell = DecompRNNCell(state_size, bottom=False)
         # stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
         #     [bottom_cell] + [rnn_cell] * (num_stacked-1))
+    elif layer_type == 9:
+        rotations = buildTransform(state_size)
+        bottom_cell = DizzyRNNCellOpt2(state_size, rotations, bottom=True)
+        rnn_cell = DizzyRNNCellOpt2(state_size, rotations, bottom=False)
+        stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
+            [bottom_cell] + [rnn_cell] * (num_stacked-1))
 
 
     return stacked_cell
