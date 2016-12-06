@@ -37,5 +37,5 @@ class DizzyRNNCellOpt2(tf.nn.rnn_cell.RNNCell):
                 dtype=tf.float32,
                 initializer=init_ops.constant_initializer(dtype=tf.float32))
 
-            output = tf.nn.relu(state_out + input_out + bias)
+            output = tf.abs(state_out + input_out + bias)
         return output, output
