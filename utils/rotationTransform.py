@@ -14,7 +14,7 @@ def rotationTransform(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, s
     nsin_thetas = tf.squeeze(tf.gather(nsin, nsin_idxs))
 
     shape = tf.constant([2*n_prime, n], dtype=tf.int64)
-    sparse_cos = tf.SparseTensor(indices=cos_list, values=cos_thetas, shape=shape)
+    sparse_cos = tf.SparseTensor(indices=cos_list   , values=cos_thetas, shape=shape)
     sparse_sin = tf.SparseTensor(indices=sin_list, values=sin_thetas, shape=shape)
     sparse_nsin = tf.SparseTensor(indices=nsin_list, values=nsin_thetas, shape=shape)
 
@@ -27,8 +27,8 @@ def rotationTransform(X, n, n_prime, cos_list,  sin_list, nsin_list, cos_idxs, s
     values = full_rot.values
     splt_values = tf.split(0, n-1, values)
 
+    shape = tf.constant([n,n], dtype=tf.int64)
     for i in range(n-1):
-        shape = tf.cast(tf.constant([n,n]), tf.int64)
         curr_indices = splt_indices[i]
         curr_values = splt_values[i]
         sparse_rot = tf.SparseTensor(indices=curr_indices, values=curr_values, shape=shape)
