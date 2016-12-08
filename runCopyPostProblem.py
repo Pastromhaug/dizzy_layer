@@ -9,14 +9,14 @@ from data.genCopyProblemData import genEpochs, genTestData, getTestData
 
 #global config variables
 num_epochs = 100
-num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 500
+num_steps = 64 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 128
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 2 * num_steps * batch_size
-num_classes = 5
+num_data_points = 8 * num_steps * batch_size
+num_classes = 3
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 if layer_type == 8:
@@ -59,10 +59,10 @@ accuracy_summary = tf.scalar_summary('train accuracy', accuracy)
 
 regularization_loss = 0
 if layer_type == 8:
-    sigma = rnn.get_sigma()
-    regularization_loss = regularizeSpread(sigma, lambda_reg)
+    sigmas = rnn.get_sigmas()
+    regularization_loss = tf.reduce_mean([regularizeSpread(sigma, lambda_reg) for sigma in sigmas])
     regularization_loss_summary = tf.scalar_summary('regularization loss', regularization_loss)
-    sigma_summary = tf.histogram_summary('sigma', sigma)
+    sigma_summary = tf.histogram_summary('sigma', sigmas)
     train_summary = tf.merge_summary([loss_summary,
                                 accuracy_summary,
                                 regularization_loss_summary,

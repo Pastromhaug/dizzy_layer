@@ -5,14 +5,16 @@ from tensorflow.python.ops import variable_scope as vs
 from utils.rotationPreprocess import rotationPreprocess
 
 def rotationTransform(X, n, scope):
-
+    n_prime = int(n*(n-1)//2)
     outputs = []
+
     with vs.variable_scope(scope or "RotationTransform"):
-        for i, x in enumerate(X):
-            n_prime = int(n*(n-1)//2)
+        for t in X:
+            name, x = t
             (cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs) = \
                 rotationPreprocess(n, n_prime)
-            thetas = vs.get_variable(initializer=tf.random_uniform([n_prime, 1], 0, 2*math.pi), name="thetas"+str(i), dtype=tf.float32)
+            thetas = vs.get_variable(initializer=tf.random_uniform([n_prime, 1], 0, 2*math.pi),
+                    name="Thetas"+name, dtype=tf.float32)
             cos = tf.cos(thetas)
             sin = tf.sin(thetas)
             nsin = tf.neg(sin)
