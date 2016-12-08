@@ -8,9 +8,10 @@ from utils.regularizeSpread import regularizeSpread
 from data.genCopyProblemData import genEpochs, genTestData, getTestData
 
 #global config variables
-summary_name = sys.argv[1]
+num_epochs = 100
 num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 500
+summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
@@ -125,4 +126,4 @@ def train_network(num_epochs, num_steps, state_size=4):
     with open('timeline_add.json', 'w') as f:
         f.write(ctf)
 
-training_losses = train_network(200, num_steps, state_size)
+training_losses = train_network(num_epochs, num_steps, state_size)
