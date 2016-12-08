@@ -8,21 +8,22 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_epochs = 100
-num_steps = 10 # number of truncated backprop steps ('n' in the discussion above)
+num_epochs = 1
+num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 1000
+num_data_points = 10000
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
-indices = [8,3]
+indices = [15,8,3]
 num_classes = len(indices)+1
 Lambda = 0
+trace = sys.argv[6] == "True" or sys.argv[6] == "true"
 if layer_type == 8:
-    Lambda = float(sys.argv[6])
+    Lambda = float(sys.argv[7])
 
 rnn = buildRNNCells(layer_type, state_size, num_stacked)
 
@@ -83,7 +84,8 @@ train_writer = tf.train.SummaryWriter('./test_shite/' + summary_name, sess.graph
 
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss + regularization_loss)
 
-run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+if trace:
+    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
 run_metadata = tf.RunMetadata()
 def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     sess.run(tf.initialize_all_variables())
@@ -101,12 +103,20 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         for step, (X, Y) in enumerate(epoch):
             train_num_steps += 1
 
-            (training_loss_, _ , train_accuracy_, train_summaries_) = \
-                sess.run([ total_loss,
-                          train_step,
-                          accuracy,
-                          train_summaries],
-                              feed_dict={x:X, y:Y}, run_metadata=run_metadata, options=run_options)
+            if trace:
+                (training_loss_, _ , train_accuracy_, train_summaries_) = \
+                    sess.run([ total_loss,
+                              train_step,
+                              accuracy,
+                              train_summaries],
+                                  feed_dict={x:X, y:Y}, run_metadata=run_metadata, options=run_options)
+            else:
+                (training_loss_, _ , train_accuracy_, train_summaries_) = \
+                    sess.run([ total_loss,
+                              train_step,
+                              accuracy,
+                              train_summaries],
+                                  feed_dict={x:X, y:Y}, run_metadata=run_metadata)
 
             train_acc += train_accuracy_
             training_loss += training_loss_
@@ -117,8 +127,12 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         test_acc = 0
         test_num_steps = 0
         for batch_num, (X_test, Y_test) in enumerate(test_epoch):
-            (test_loss_, test_accuracy_, test_summaries_) = sess.run([total_loss, accuracy, test_summaries],
-                feed_dict={x:X_test, y:Y_test}, run_metadata=run_metadata, options=run_options)
+            if trace:
+                (test_loss_, test_accuracy_, test_summaries_) = sess.run([total_loss, accuracy, test_summaries],
+                    feed_dict={x:X_test, y:Y_test}, run_metadata=run_metadata, options=run_options)
+            else:
+                (test_loss_, test_accuracy_, test_summaries_) = sess.run([total_loss, accuracy, test_summaries],
+                    feed_dict={x:X_test, y:Y_test}, run_metadata=run_metadata)
             test_loss += test_loss_
             test_acc += test_accuracy_
             train_writer.add_summary(test_summaries_, idx)
@@ -134,10 +148,11 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_losses.append(training_loss)
         training_loss = 0
 
-    tl = timeline.Timeline(run_metadata.step_stats)
-    ctf = tl.generate_chrome_trace_format()
-    with open('dat_new_laptop.json', 'w') as f:
-        f.write(ctf)
+    if trace:
+        tl = timeline.Timeline(run_metadata.step_stats)
+        ctf = tl.generate_chrome_trace_format()
+        with open('we_in_it.json', 'w') as f:
+            f.write(ctf)
     return training_losses
 
 training_losses = train_network(num_epochs,num_steps, state_size)
