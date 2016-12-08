@@ -11,15 +11,6 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
   def __init__(self, num_units, bottom=True):
         self._num_units = num_units
-        self._indices = [(a, b) for b in range(self._num_units) for a in range(b)]
-        self._num_params = num_units*(num_units-1)/2
-        cos_list,  sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs = rotationPreprocess(self._num_units, self._num_params)
-        self._cos_list = cos_list
-        self._sin_list = sin_list
-        self._nsin_list = nsin_list
-        self._cos_idxs = cos_idxs
-        self._sin_idxs = sin_idxs
-        self._nsin_idxs = nsin_idxs
         self._bottom = bottom
 
   @property
@@ -31,20 +22,22 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
         return self._num_units
 
   def __call__(self, inputs, state, scope=None):
+        
         with vs.variable_scope(scope or type(self).__name__):
 
-            state_out = rotationTransform(tf.transpose(state), self._num_units, self._num_params,
-                self._cos_list,  self._sin_list, self._nsin_list,
-                self._cos_idxs, self._sin_idxs, self._nsin_idxs)
+            t_state = tf.transpose(state)
+            t_inputs = tf.transpose(inputs)
+            if self._bottom == True:
+                [state_out] = rotationTransform([t_state], self._num_units, scope)
+                input_out = linearTransformWithBias([inputs],
+                    self._num_units, bias=False, scope=scope)
+            else:
+                [state_out, input_out] = \
+                    rotationTransform([t_state, t_inputs],
+                    self._num_units, scope)
+                input_out = tf.transpose(input_out)
             state_out = tf.transpose(state_out)
 
-            if self._bottom == True:
-                input_out = linearTransformWithBias([inputs], self._num_units, bias=False)
-            else:
-                input_out = rotationTransform(tf.transpose(inputs), self._num_units, self._num_params,
-                    self._cos_list,  self._sin_list, self._nsin_list,
-                    self._cos_idxs, self._sin_idxs, self._nsin_idxs)
-                input_out = tf.transpose(input_out)
 
             bias = vs.get_variable(
                 "Bias", [self._num_units],
