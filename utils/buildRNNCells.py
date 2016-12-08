@@ -5,7 +5,6 @@ from layers.dizzyRNNCellv1 import DizzyRNNCellV1
 from layers.dizzyRNNCellv2 import DizzyRNNCellV2
 from layers.iRNNCell import IRNNCell
 from layers.decompRNNCell import DecompRNNCell
-from utils.buildRotations import buildTransform
 
 def buildRNNCells(layer_type, state_size, num_stacked):
     if layer_type == 1:
