@@ -40,7 +40,6 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         #  bottom_cell = DizzyRNNCell(state_size, bottom=True)
         #  rnn_cell = DizzyRNNCell(state_size, bottom=False)
         #  stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-            #  [bottom_cell] + [rnn_cell] * (num_stacked-1))
 
 
 

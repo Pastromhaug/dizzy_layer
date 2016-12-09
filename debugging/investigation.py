@@ -2,11 +2,19 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import timeline
 
-var = tf.Variable(tf.random_uniform([2,2], 0, 2), name="thetas", dtype=tf.float32)
+# from utils.rotationPreprocess import rotationPreprocess
+
+var = tf.Variable(tf.random_uniform([1000,1], 0, 2), name="thetas", dtype=tf.float32)
 # x = tf.placeholder( shape=[2,2], name='input_placeholder', dtype=tf.float32)
+l = [tf.random_uniform([1000,1], 0, 2) for j in range(100)]
+L = tf.random_uniform([1000,1000], 0, 2)
 # mul = tf.matmul(var, x)
-# o = tf.cos(var)
-train_step = tf.train.AdagradOptimizer(0.1).minimize(var)
+o = var
+for arr in l:
+    o = arr * o
+
+o = tf.matmul(L, o)
+train_step = tf.train.AdagradOptimizer(0.1).minimize(o)
 
 def run_shit():
     sess = tf.Session()
@@ -18,7 +26,7 @@ def run_shit():
 
     tl = timeline.Timeline(run_metadata.step_stats)
     ctf = tl.generate_chrome_trace_format()
-    with open('o.json', 'w') as f:
+    with open('o_100.json', 'w') as f:
         f.write(ctf)
 
 run_shit()

@@ -4,7 +4,6 @@ import numpy as np
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import variable_scope as vs
 from utils.linearTransformWithBias import linearTransformWithBias
-from utils.rotationPreprocess import rotationPreprocess
 from utils.rotationTransform import rotationTransform
 
 class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
@@ -22,7 +21,7 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
         return self._num_units
 
   def __call__(self, inputs, state, scope=None):
-        
+
         with vs.variable_scope(scope or type(self).__name__):
 
             t_state = tf.transpose(state)
