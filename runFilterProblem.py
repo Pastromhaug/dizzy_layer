@@ -36,7 +36,7 @@ x_one_hot = tf.one_hot(x, num_classes)
 rnn_inputs = tf.unpack(x_one_hot, axis=1)
 
 rnn_outputs, final_state = tf.nn.rnn(rnn, rnn_inputs, initial_state=init_state)
-sigma = None
+sigmas = None
 if layer_type == 8:
     sigma = rnn.get_sigmas()
 
@@ -58,7 +58,7 @@ losses = [tf.nn.sparse_softmax_cross_entropy_with_logits(logit,label) for \
 total_loss = tf.reduce_mean(losses)
 regularization_loss = 0
 if layer_type == 8:
-    regularization_loss = regularizeSpread(sigma, Lambda)
+    regularization_loss = tf.reduce_mean([regularizeSpread(sigma, Lambda) for sigma in sigmas])
 
 pred_labels = [tf.argmax(log,1) for log in predictions]
 y_as_list = tf.pack(y_as_list)
@@ -72,8 +72,8 @@ test_loss_summary = tf.scalar_summary('loss_test', total_loss)
 
 if layer_type == 8:
     regularization_loss_summary = tf.scalar_summary("regularization_loss", regularization_loss)
-    sigma_summary = tf.histogram_summary("sigma", sigma)
-    train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary, regularization_loss_summary, sigma_summary])
+    sigmas_summary = tf.histogram_summary("sigmas", sigmas)
+    train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary, regularization_loss_summary, sigmas_summary])
     test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 else:
     train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary])
