@@ -41,7 +41,7 @@ logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs[num_steps /
 logits = tf.transpose(logits, [1, 0, 2])
 
 predictions = tf.unpack(logits)
-predictions = [tf.argmax(prediction, axis=1) for prediction in predictions]
+predictions = [tf.argmax(prediction, 1) for prediction in predictions]
 
 labels = [tf.squeeze(i, squeeze_dims=[0])[num_steps // 2:] for i in tf.split(0, batch_size, y)]
 
