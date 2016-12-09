@@ -80,10 +80,13 @@ var_sq = tf.square(var)
 var_sum = tf.reduce_sum(var_sq)
 var_norm = tf.sqrt(var_sum)
 var2 = var
+
+testing = tf.constant([[1,5,2,3,4,2],[6,2,4,2,1,2],[6,2,3,2,1,3],[1,5,3,2,3,2],[67,2,2,5,2,3],[6,2,3,2,1,3]], dtype=tf.float32)
 for i in range(n-1):
     curr_indices = splt_indices[i]
     curr_values = splt_values[i]
     sparse_rot = tf.SparseTensor(indices=curr_indices, values=curr_values, shape=shape)
+    # var2 = tf.matmul(testing, var2)
     var2 = tf.sparse_tensor_dense_matmul(sparse_rot, var2)
 var2_sq = tf.square(var2)
 var2_sum = tf.reduce_sum(var2_sq)
