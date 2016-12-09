@@ -27,12 +27,12 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
             t_state = tf.transpose(state)
             t_inputs = tf.transpose(inputs)
             if self._bottom == True:
-                [state_out] = rotationTransform([t_state], self._num_units, scope)
+                [state_out] = rotationTransform([("StateL", t_state)], self._num_units, scope)
                 input_out = linearTransformWithBias([inputs],
                     self._num_units, bias=False, scope=scope)
             else:
                 [state_out, input_out] = \
-                    rotationTransform([t_state, t_inputs],
+                    rotationTransform([("StateL", t_state), ("InputL", t_inputs)],
                     self._num_units, scope)
                 input_out = tf.transpose(input_out)
             state_out = tf.transpose(state_out)
