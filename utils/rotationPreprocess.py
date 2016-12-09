@@ -3,12 +3,8 @@ import numpy as np
 
 def rotationPreprocess(n,np):
     np = int(np)
-    cos_list = [[] for i in range(np*2)]
-    sin_list = [[-1,-1] for i in range(np*2)]
-    nsin_list = [[-1,-1] for i in range(np*2)]
-    cos_idxs = [-1 for i in range(np*2)]
-    sin_idxs = [-1 for i in range(np*2)]
-    nsin_idxs = [-1 for i in range(np*2)]
+    indices = [[-1,-1] for i in range(np*4)]
+    values = [-1 for i in  range(np*4)]
 
     theta_num = 0
 
@@ -25,14 +21,17 @@ def rotationPreprocess(n,np):
                 idx = (idx+1) % (n-1)
             arr[idx][i] = theta_idx
             arr[idx][j] = theta_idx
-            cos_list[idx*n + i] = [idx*n + i,i]
-            cos_list[idx*n + j] = [idx*n + j,j]
-            sin_list[idx*n + i] = [idx*n + i,j]
-            nsin_list[idx*n + j] = [idx*n + j,i]
-            cos_idxs[idx*n + i] = theta_num
-            cos_idxs[idx*n + j] = theta_num
-            sin_idxs[idx*n + i] = theta_num
-            nsin_idxs[idx*n + j] = theta_num
+
+            indices[idx*n*2 + 2*i] = [i,i]
+            indices[idx*n*2 + 2*j+1] = [j,j]
+            indices[idx*n*2 + 2*i+1] = [i,j]
+            indices[idx*n*2 + 2*j] = [j,i]
+
+            values[idx*n*2 + 2*i] = theta_num
+            values[idx*n*2 + 2*j+1] = theta_num
+            values[idx*n*2 + 2*i+1] = np + theta_num
+            values[idx*n*2 + 2*j] = np*2 + theta_num
+
             theta_num += 1
         head = (head + 2) % (n - 1)
         tail = (tail + 1) % (n - 1)
@@ -40,16 +39,7 @@ def rotationPreprocess(n,np):
         start_idx = (start_idx + 2) % (n - 1)
         idx = start_idx
 
-    sin_list = [i for i in sin_list if i != [-1,-1]]
-    nsin_list = [i for i in nsin_list if i != [-1,-1]]
-    sin_idxs = [i for i in sin_idxs if i != -1]
-    nsin_idxs = [i for i in nsin_idxs if i != -1]
+    indices = tf.constant(indices, dtype=tf.int64)
+    values = tf.constant(values, dtype=tf.int64)
 
-    cos_list = tf.constant(cos_list, dtype=tf.int64)
-    sin_list = tf.constant(sin_list, dtype=tf.int64)
-    nsin_list = tf.constant(nsin_list, dtype=tf.int64)
-    cos_idxs = tf.constant(cos_idxs, dtype=tf.int64)
-    sin_idxs = tf.constant(sin_idxs, dtype=tf.int64)
-    nsin_idxs = tf.constant(nsin_idxs, dtype=tf.int64)
-
-    return cos_list, sin_list, nsin_list, cos_idxs, sin_idxs, nsin_idxs
+    return indices, values
