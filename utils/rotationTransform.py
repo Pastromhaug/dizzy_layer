@@ -10,11 +10,11 @@ def rotationTransform(X, n, scope):
 
     with vs.variable_scope(scope or "RotationTransform"):
 
-        for i, x in enumerate(X):
+        for i, (name, x) in enumerate(X):
             n_prime = int(n*(n-1)//2)
             (indices, values_idxs) = rotationPreprocess(n, n_prime)
             thetas = vs.get_variable(initializer=tf.random_uniform([n_prime, 1], 0, 2*math.pi),
-                    name="Thetas"+str(i), dtype=tf.float32)
+                    name="Thetas"+str(i)+name, dtype=tf.float32)
 
             cos = tf.cos(thetas)
             sin = tf.sin(thetas)

@@ -38,7 +38,7 @@ rnn_inputs = tf.unpack(x_one_hot, axis=1)
 rnn_outputs, final_state = tf.nn.rnn(rnn, rnn_inputs, initial_state=init_state)
 sigma = None
 if layer_type == 8:
-    sigma = rnn.get_sigma()
+    sigma = rnn.get_sigmas()
 
 # [tf.histogram_summary('hidden state %d' % i, output[:,0]) for i, output in enumerate(rnn_outputs)]
 
