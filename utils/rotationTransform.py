@@ -5,6 +5,7 @@ from tensorflow.python.ops import variable_scope as vs
 from utils.rotationPreprocess import rotationPreprocess
 
 def rotationTransform(X, n, scope, num_rots=None):
+    num_rots = num_rots or (n-1)
     n_prime = int(n*(n-1)//2*num_rots/(n-1))
     outputs = []
 
