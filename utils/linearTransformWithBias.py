@@ -5,6 +5,7 @@ from tensorflow.python.util import nest
 from tensorflow.python.ops import variable_scope as vs
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import init_ops
+from tensorflow.python.ops import array_ops
 
 def linearTransformWithBias(args, output_size, bias=True, bias_start=0.0, scope=None):
   """Linear map: sum_i(args[i] * W[i]), where W[i] is a variable.
@@ -43,8 +44,8 @@ def linearTransformWithBias(args, output_size, bias=True, bias_start=0.0, scope=
 
   # Now the computation.
   with vs.variable_scope(scope or "Linear"):
-    matrix = vs.get_variable(
-        "Matrix", [total_arg_size, output_size], dtype=dtype)
+    gauss =  tf.random_normal(shape=[total_arg_size, output_size], mean=0.0, stddev = 1/np.sqrt(output_size))
+    matrix = vs.get_variable("Matrix", dtype=dtype, initializer=gauss)
     if len(args) == 1:
       res = math_ops.matmul(args[0], matrix)
     else:

@@ -8,8 +8,8 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_epochs = 10
-num_steps = 20 # number of truncated backprop steps ('n' in the discussion above)
+num_epochs = 100
+num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
@@ -18,7 +18,7 @@ learning_rate = float(sys.argv[4])
 num_data_points = 10000
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
-indices = [15,8,3]
+indices = [40,15,8,3]
 num_classes = len(indices)+1
 Lambda = 0
 trace = sys.argv[6] == "True" or sys.argv[6] == "true"
@@ -30,6 +30,7 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked)
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')
 y = tf.placeholder(tf.int32, [batch_size, num_steps], name='labels_placeholder')
+lr = tf.placeholder(tf.float32, name='learning_rate')
 init_state = rnn.zero_state(batch_size, tf.float32)
 
 x_one_hot = tf.one_hot(x, num_classes)
@@ -44,7 +45,8 @@ if layer_type == 8:
 
 
 with tf.variable_scope('softmax'):
-    W = tf.get_variable('W', [state_size, num_classes])
+    gauss =  tf.random_normal(shape=[state_size, num_classes], mean=0.0, stddev = 1/np.sqrt(num_classes))
+    W = tf.get_variable('W', initializer=gauss)
     b = tf.get_variable('v', [num_classes], initializer=tf.constant_initializer(0.0))
 logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs]
 
@@ -109,14 +111,14 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
                               train_step,
                               accuracy,
                               train_summaries],
-                                  feed_dict={x:X, y:Y}, run_metadata=run_metadata, options=run_options)
+                                  feed_dict={x:X, y:Y, lr:learning_rate}, run_metadata=run_metadata, options=run_options)
             else:
                 (training_loss_, _ , train_accuracy_, train_summaries_) = \
                     sess.run([ total_loss,
                               train_step,
                               accuracy,
                               train_summaries],
-                                  feed_dict={x:X, y:Y}, run_metadata=run_metadata)
+                                  feed_dict={x:X, y:Y, lr:learning_rate}, run_metadata=run_metadata)
 
             train_acc += train_accuracy_
             training_loss += training_loss_
@@ -129,10 +131,10 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         for batch_num, (X_test, Y_test) in enumerate(test_epoch):
             if trace:
                 (test_loss_, test_accuracy_, test_summaries_) = sess.run([total_loss, accuracy, test_summaries],
-                    feed_dict={x:X_test, y:Y_test}, run_metadata=run_metadata, options=run_options)
+                    feed_dict={x:X_test, y:Y_test, lr:learning_rate}, run_metadata=run_metadata, options=run_options)
             else:
                 (test_loss_, test_accuracy_, test_summaries_) = sess.run([total_loss, accuracy, test_summaries],
-                    feed_dict={x:X_test, y:Y_test}, run_metadata=run_metadata)
+                    feed_dict={x:X_test, y:Y_test, lr:learning_rate}, run_metadata=run_metadata)
             test_loss += test_loss_
             test_acc += test_accuracy_
             train_writer.add_summary(test_summaries_, idx)

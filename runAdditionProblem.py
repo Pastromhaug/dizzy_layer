@@ -8,13 +8,14 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
+num_epochs = 1
 num_steps = 50 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 500
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 250000
+num_data_points = 25000
 num_classes = 1
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
@@ -123,4 +124,4 @@ def train_network(num_epochs, num_steps, state_size=4):
     # with open('./timelines/additionV2.json', 'w') as f:
     #     f.write(ctf)
 
-training_losses = train_network(200,num_steps, state_size)
+training_losses = train_network(num_epochs,num_steps, state_size)

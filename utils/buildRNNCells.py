@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from layers.basicRNNCellGauss import BasicRNNCellGauss
 from layers.dizzyRNNCellOpt import DizzyRNNCellOpt
 from layers.dizzyRNNCellv1 import DizzyRNNCellV1
 from layers.dizzyRNNCellv2 import DizzyRNNCellV2
@@ -40,7 +41,9 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         #  bottom_cell = DizzyRNNCell(state_size, bottom=True)
         #  rnn_cell = DizzyRNNCell(state_size, bottom=False)
         #  stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
-
+    elif layer_type == 9:
+        rnn_cell = BasicRNNCellGauss(state_size)
+        stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
 
 
     return stacked_cell

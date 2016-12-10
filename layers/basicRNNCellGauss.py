@@ -1,10 +1,11 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.python.ops.math_ops import tanh
+from tensorflow.python.ops import variable_scope as vs
 
-from ..utils.linearTransformWithBias import linearTransformWithBias
+from utils.linearTransformWithBias import linearTransformWithBias
 
-class BasicRNNCell(tf.nn.rnn_cell.RNNCell):
+class BasicRNNCellGauss(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
 
   def __init__(self, num_units, input_size=None, activation=tanh):
