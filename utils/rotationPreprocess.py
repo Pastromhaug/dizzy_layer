@@ -1,8 +1,9 @@
 import tensorflow as tf
 import numpy as np
 
-def rotationPreprocess(n,np):
-    np = int(np)
+def rotationPreprocess(n, num_rot=None):
+    num_rot = num_rot or n-1
+    np = int(n*(n-1)/2*num_rot/(n-1))
     indices = [[-1,-1] for i in range(np*4)]
     values = [-1 for i in  range(np*4)]
 
@@ -19,8 +20,11 @@ def rotationPreprocess(n,np):
         for j in range(i+1, n):
             while arr[idx][i] > -1 or arr[idx][j] > -1:
                 idx = (idx+1) % (n-1)
+
             arr[idx][i] = theta_idx
             arr[idx][j] = theta_idx
+            if idx >= num_rot:
+                continue
 
             indices[idx*n*2 + 2*i] = [i,i]
             indices[idx*n*2 + 2*j+1] = [j,j]
@@ -41,5 +45,4 @@ def rotationPreprocess(n,np):
 
     indices = tf.constant(indices, dtype=tf.int64)
     values = tf.constant(values, dtype=tf.int64)
-
     return indices, values

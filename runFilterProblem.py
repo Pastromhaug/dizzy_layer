@@ -22,10 +22,13 @@ indices = [40,15,8,3]
 num_classes = len(indices)+1
 Lambda = 0
 trace = sys.argv[6] == "True" or sys.argv[6] == "true"
+num_rots = None
+if layer_type == 6 and len(sys.argv) >= 8:
+    num_rots = int(sys.argv[7])
 if layer_type == 8:
     Lambda = float(sys.argv[7])
 
-rnn = buildRNNCells(layer_type, state_size, num_stacked)
+rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 
 # model
 x = tf.placeholder(tf.int32, [batch_size, num_steps], name='input_placeholder')

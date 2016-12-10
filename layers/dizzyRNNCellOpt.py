@@ -8,8 +8,9 @@ from utils.rotationTransform import rotationTransform
 
 class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
   """The most basic RNN cell."""
-  def __init__(self, num_units, bottom=True):
+  def __init__(self, num_units, num_rots=None, bottom=True):
         self._num_units = num_units
+        self._num_rots = num_rots
         self._bottom = bottom
 
   @property
@@ -27,7 +28,7 @@ class DizzyRNNCellOpt(tf.nn.rnn_cell.RNNCell):
             t_state = tf.transpose(state)
             t_inputs = tf.transpose(inputs)
             if self._bottom == True:
-                [state_out] = rotationTransform([("StateL", t_state)], self._num_units, scope)
+                [state_out] = rotationTransform([("StateL", t_state)], self._num_units , scope, self._num_rots)
                 input_out = linearTransformWithBias([inputs],
                     self._num_units, bias=False, scope=scope)
             else:

@@ -8,7 +8,7 @@ from layers.iRNNCell import IRNNCell
 from layers.decompRNNCell import DecompRNNCell
 from layers.dizzyRNNCell import DizzyRNNCell
 
-def buildRNNCells(layer_type, state_size, num_stacked):
+def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
     if layer_type == 1:
         rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
@@ -27,8 +27,8 @@ def buildRNNCells(layer_type, state_size, num_stacked):
         rnn_cell = tf.nn.rnn_cell.GRUCell(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
     elif layer_type == 6:
-        bottom_cell = DizzyRNNCellOpt(state_size, bottom=True)
-        rnn_cell = DizzyRNNCellOpt(state_size, bottom=False)
+        bottom_cell = DizzyRNNCellOpt(state_size, num_rots=num_rots, bottom=True)
+        rnn_cell = DizzyRNNCellOpt(state_size, num_rots=num_rots, bottom=False)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
             [bottom_cell] + [rnn_cell] * (num_stacked-1))
     elif layer_type == 7:
