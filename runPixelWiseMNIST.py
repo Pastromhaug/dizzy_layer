@@ -19,9 +19,7 @@ num_test_runs = batch_size
 num_classes = 10
 Lambda = 0
 num_rots = state_size-1
-print("layer type in pixel %d " % layer_type)
 if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
-    print("getting numr_rots" )
     num_rots = int(sys.argv[6])
 if layer_type == 8:
     Lambda = float(sys.argv[6])
@@ -30,7 +28,7 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 #--------------- Placeholders --------------------------
 x = tf.placeholder(tf.float32, [batch_size, 784], name='input_placeholder')
 input_data = tf.unpack(x,784,1)
-input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
+input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
 y = tf.placeholder(tf.float32, [batch_size, 10], name='labels_placeholder')
 lr = tf.placeholder(tf.float32, name='learning_rate')
 
