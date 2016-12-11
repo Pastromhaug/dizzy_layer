@@ -7,7 +7,7 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 num_epochs = 100
-batch_size = 50
+batch_size = 100
 num_batches = 55000/batch_size
 test_batches = 10000/batch_size
 summary_name = sys.argv[1]
