@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 def rotationPreprocess(n, num_rot=None):
+    print("in rotation preprocess")
     num_rot = num_rot or n-1
     np = int(n*(n-1)/2*num_rot/(n-1))
     indices = [[-1,-1] for i in range(np*4)]

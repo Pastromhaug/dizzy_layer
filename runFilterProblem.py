@@ -8,14 +8,14 @@ from utils.buildRNNCells import buildRNNCells
 from utils.regularizeSpread import regularizeSpread
 
 #global config variables
-num_epochs = 100
-num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
+num_epochs = 1
+num_steps = 10 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-num_data_points = 10000
+num_data_points = 1500
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 indices = [40,15,8,3]
@@ -156,7 +156,7 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
     if trace:
         tl = timeline.Timeline(run_metadata.step_stats)
         ctf = tl.generate_chrome_trace_format()
-        with open('we_in_it.json', 'w') as f:
+        with open('test_cos_sin.json', 'w') as f:
             f.write(ctf)
     return training_losses
 

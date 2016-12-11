@@ -7,6 +7,8 @@ from layers.dizzyRNNCellv2 import DizzyRNNCellV2
 from layers.iRNNCell import IRNNCell
 from layers.decompRNNCell import DecompRNNCell
 from layers.dizzyRNNCell import DizzyRNNCell
+from layers.dizzyRNNCellOptHacky import DizzyRNNCellOptHacky
+from utils.buildRotations import buildRotations
 
 def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
     if layer_type == 1:
@@ -44,6 +46,10 @@ def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
     elif layer_type == 9:
         rnn_cell = BasicRNNCellGauss(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
+    elif layer_type == 10:
+        rotations = buildRotations(state_size, num_rots)
+        rnn_cell = DizzyRNNCellOptHacky(state_size, rotations)
+        stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell])
 
 
     return stacked_cell
