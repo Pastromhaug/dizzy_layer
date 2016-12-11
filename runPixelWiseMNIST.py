@@ -30,7 +30,7 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 #--------------- Placeholders --------------------------
 x = tf.placeholder(tf.float32, [batch_size, 784], name='input_placeholder')
 input_data = tf.unpack(x,784,1)
-input_data = [tf.reshape(j, [50,1]) for j in input_data ]
+input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
 y = tf.placeholder(tf.float32, [batch_size, 10], name='labels_placeholder')
 lr = tf.placeholder(tf.float32, name='learning_rate')
 
