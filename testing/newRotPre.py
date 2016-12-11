@@ -92,10 +92,12 @@ var_norm = tf.sqrt(var_sum)
 var2 = var
 
 testing = tf.constant([[1,5,2,3,4,2],[6,2,4,2,1,2],[6,2,3,2,1,3],[1,5,3,2,3,2],[67,2,2,5,2,3],[6,2,3,2,1,3]], dtype=tf.float32)
+all_rots = []
 for i in range(num_rot):
     curr_indices = splt_indices[i]
     curr_values = splt_values[i]
     sparse_rot = tf.SparseTensor(indices=curr_indices, values=curr_values, shape=shape)
+    all_rots.append(sparse_rot)
     # var2 = tf.matmul(testing, var2)
     var2 = tf.sparse_tensor_dense_matmul(sparse_rot, var2)
 var2_sq = tf.square(var2)
@@ -107,14 +109,18 @@ var2_norm = tf.sqrt(var2_sum)
 sess = tf.Session()
 run_metadata = tf.RunMetadata()
 sess.run(tf.initialize_all_variables())
-(var_norm_, var2_norm_, var_, var2_) = sess.run([var_norm, var2_norm, var, var2], run_metadata=run_metadata,)
+(rot1, rot2, rot3, rot4, rot5) = sess.run(all_rots)#[var_norm, var2_norm, var, var2], run_metadata=run_metadata,)
 
-print("var")
-print(var_)
-print("var2")
-print(var2_)
-print("var_norm:  %f" % var_norm_)
-print("var2_norm: %f" % var2_norm_)
+print("rot1")
+print(rot1)
+print("rot2")
+print(rot2)
+print("rot3")
+print(rot3)
+print("rot4")
+print(rot4)
+print("rot5")
+print(rot5)
 
 # print("final_g")
 # print(final_g)
