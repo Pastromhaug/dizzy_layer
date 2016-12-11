@@ -19,7 +19,7 @@ num_test_runs = batch_size
 num_classes = 10
 Lambda = 0
 num_rots = None
-if layer_type == 6 and len(sys.argv) >= 8:
+if (layer_type == 6 or layer_type == 12) and len(sys.argv) >= 8:
     num_rots = int(sys.argv[6])
 if layer_type == 8:
     Lambda = float(sys.argv[6])

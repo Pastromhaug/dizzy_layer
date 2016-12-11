@@ -14,7 +14,7 @@ summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
-learning_rate_decay = 0.9
+learning_rate_decay = 0.95
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 num_classes = 10
@@ -90,7 +90,7 @@ train_writer = tf.train.SummaryWriter('./test_shite/' + summary_name, sess.graph
 
 
 #==================== FUNCTION TO TRAIN MODEL ================
-def train_network(num_epochs, state_size=4, verbose=True):
+def train_network(num_epochs, state_size, learning_rate, learning_rate_decay, verbose=True):
     sess.run(tf.initialize_all_variables())
     training_losses = []
 
@@ -133,7 +133,7 @@ def train_network(num_epochs, state_size=4, verbose=True):
             test_acc += test_accuracy_
             train_writer.add_summary(test_summaries_, writer_count)
             test_num_steps += 1
-        learning_rate = learning_rate*learnint_rate_decay
+        learning_rate = learning_rate*learning_rate_decay
         print("new learning_rate: %f" % learning_rate)
         train_acc = train_acc/train_num_steps
         training_loss = training_loss/train_num_steps
@@ -145,4 +145,4 @@ def train_network(num_epochs, state_size=4, verbose=True):
         training_loss = 0
     return training_losses
 
-training_losses = train_network(num_epochs, state_size)
+training_losses = train_network(num_epochs, state_size, learning_rate, learning_rate_decay)

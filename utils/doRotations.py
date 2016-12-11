@@ -7,5 +7,5 @@ from utils.rotationPreprocess import rotationPreprocess
 def doRotations(X, rotations):
     with vs.variable_scope("Do_Rotations"):
         for sparse_rot in rotations:
-            x = tf.sparse_tensor_dense_matmul(sparse_rot, X)
+            X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
         return X

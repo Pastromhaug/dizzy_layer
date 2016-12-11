@@ -46,4 +46,5 @@ def rotationPreprocess(n, num_rot=None):
 
     indices = tf.constant(indices, dtype=tf.int64)
     values = tf.constant(values, dtype=tf.int64)
+    print("exiting rotation preprocess")
     return indices, values
