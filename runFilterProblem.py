@@ -9,7 +9,7 @@ from utils.regularizeSpread import regularizeSpread
 
 #global config variables
 num_epochs = 1
-num_steps = 3        # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 4        # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 50
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
@@ -22,11 +22,11 @@ indices = [40,15,8,3]
 num_classes = len(indices)+1
 Lambda = 0
 trace = sys.argv[6] == "True" or sys.argv[6] == "true"
-num_rots = None
-if layer_type == 6 and len(sys.argv) >= 8:
-    num_rots = int(sys.argv[7])
+num_rots = state_size-1
+if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
+    num_rots = int(sys.argv[6])
 if layer_type == 8:
-    Lambda = float(sys.argv[7])
+    Lambda = float(sys.argv[6])
 
 rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 

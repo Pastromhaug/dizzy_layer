@@ -13,6 +13,7 @@ from layers.dizzyRNNCellOptHackySigmas import DizzyRNNCellOptHackySigmas
 from utils.buildRotations import buildRotations
 
 def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
+    print("layer type: %d " % layer_type)
     if layer_type == 1:
         rnn_cell = tf.nn.rnn_cell.LSTMCell(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
@@ -49,7 +50,9 @@ def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
         rnn_cell = BasicRNNCellGauss(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
     elif layer_type == 10:
+        print("num_rots in buildRNNCell %d" % num_rots)
         rotations = buildRotations(state_size, num_rots)
+        print("num rotations in buildRNNCell: %d" %(len(rotations)))
         rnn_cell = DizzyRNNCellOptHacky(state_size, rotations)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell])
     elif layer_type == 11:

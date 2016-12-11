@@ -5,6 +5,7 @@ from tensorflow.python.ops import variable_scope as vs
 from utils.rotationPreprocess import rotationPreprocess
 
 def doRotations(X, rotations):
+    print('number of rotations in doRotations: %d' % len(rotations))
     with vs.variable_scope("Do_Rotations"):
         for sparse_rot in rotations:
             X = tf.sparse_tensor_dense_matmul(sparse_rot, X)
