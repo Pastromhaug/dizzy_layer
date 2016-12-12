@@ -25,6 +25,7 @@ trace = sys.argv[6] == "True" or sys.argv[6] == "true"
 num_rots = state_size-1
 if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
+    trace = sys.argv[7] == "True" or sys.argv[7] == "true"
 if layer_type == 8:
     Lambda = float(sys.argv[6])
 
@@ -153,10 +154,12 @@ def train_network(num_epochs, num_steps, state_size=4, verbose=True):
         training_losses.append(training_loss)
         training_loss = 0
 
+
+    print("trace",trace)
     if trace:
         tl = timeline.Timeline(run_metadata.step_stats)
         ctf = tl.generate_chrome_trace_format()
-        with open('test_cos_sin.json', 'w') as f:
+        with open('profile_dizzy3.json', 'w') as f:
             f.write(ctf)
     return training_losses
 
