@@ -22,13 +22,17 @@ class DizzyRNNCellOptHackySigmas(tf.nn.rnn_cell.RNNCell):
   def output_size(self):
         return self._num_units
 
+  def get_sigmas(self):
+      return self._sigmas
+
   def __call__(self, inputs, state, scope=None):
 
         with vs.variable_scope(scope or type(self).__name__):
 
             t_state = tf.transpose(state)
 
-            state_out = doRotationsSigmas(t_state, self._rotations, self._num_units)
+            state_out, sigma = doRotationsSigmas(t_state, self._rotations, self._num_units)
+            self._sigmas = [sigma]
             input_out = linearTransformWithBias([inputs],
                 self._num_units, bias=False, scope=scope)
 

@@ -28,6 +28,9 @@ if layer_type == 8:
 if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 
+if (layer_type == 12):
+    lambda_reg = float(sys.argv[7])
+
 rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 
 # model
@@ -64,7 +67,7 @@ loss_summary = tf.scalar_summary('train loss', loss)
 accuracy_summary = tf.scalar_summary('train accuracy', accuracy)
 
 regularization_loss = 0
-if layer_type == 8:
+if layer_type == 8 or layer_type == 12:
     sigmas = rnn.get_sigmas()
     regularization_loss = tf.reduce_mean([regularizeSpread(sigma, lambda_reg) for sigma in sigmas])
     regularization_loss_summary = tf.scalar_summary('regularization loss', regularization_loss)
