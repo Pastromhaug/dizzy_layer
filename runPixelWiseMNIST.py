@@ -19,6 +19,7 @@ num_test_runs = batch_size
 num_classes = 10
 Lambda = 0
 num_rots = state_size-1
+print("layer type in pixel %d ")
 if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 if layer_type == 8:

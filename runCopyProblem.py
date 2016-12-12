@@ -10,21 +10,25 @@ from data.genCopyProblemData import genEpochs, genTestData, getTestData
 
 #global config variables
 num_epochs = 200
-num_steps = 64 # number of truncated backprop steps ('n' in the discussion above)
-batch_size = 32
+num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
+batch_size = 100
 num_batches = 8
-num_classes = 4
-copy_len = 4
+num_classes = 10
+copy_len = 10
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
 learning_rate = float(sys.argv[4])
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
+num_rots = state_size - 1
 if layer_type == 8:
     lambda_reg = float(sys.argv[6])
 
-rnn = buildRNNCells(layer_type, state_size, num_stacked)
+if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
+    num_rots = int(sys.argv[6])
+
+rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 
 # model
 x = tf.placeholder(tf.float32, [batch_size, num_steps, num_classes+2], name='input_placeholder')
