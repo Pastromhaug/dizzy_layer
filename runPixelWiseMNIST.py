@@ -20,16 +20,21 @@ num_classes = 10
 Lambda = 0
 num_rots = state_size-1
 print("layer type in pixel %d ")
+if layer_type == 8:
+    lambda_reg = float(sys.argv[6])
+
 if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
-if layer_type == 8:
-    Lambda = float(sys.argv[6])
+
+if (layer_type == 12):
+    lambda_reg = float(sys.argv[7])
 
 rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 #--------------- Placeholders --------------------------
 x = tf.placeholder(tf.float32, [batch_size, 784], name='input_placeholder')
 input_data = tf.unpack(x,784,1)
 input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
+# input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
 y = tf.placeholder(tf.float32, [batch_size, 10], name='labels_placeholder')
 lr = tf.placeholder(tf.float32, name='learning_rate')
 
@@ -37,8 +42,8 @@ lr = tf.placeholder(tf.float32, name='learning_rate')
 init_state = rnn.zero_state(batch_size, tf.float32)
 rnn_outputs, final_state = tf.nn.rnn(rnn, input_data, initial_state=init_state)
 sigmas = None
-if layer_type == 8:
-    sigma = rnn.get_sigmas()
+if layer_type == 8 or layer_type == 12:
+    sigmas = rnn.get_sigmas()
 
 #------------ Getting Loss ------------------------------
 with tf.variable_scope('softmax'):
@@ -51,7 +56,7 @@ loss = tf.reduce_mean(tf.square(y - prediction))
 
 #------- Singular Value Regularization  if DizzyReg------
 regularization_loss = 0
-if layer_type == 8:
+if layer_type == 8 or layer_type == 12:
     regularization_loss = tf.reduce_mean([regularizeSpread(sigma, Lambda) for sigma in sigmas])
 
 #------------------------ Optimizer ---------------------
@@ -71,12 +76,12 @@ test_accuracy_summary = tf.scalar_summary('acc_test', accuracy)
 test_loss_summary = tf.scalar_summary('loss_test', loss)
 
 #-------- Singular value summaries if DizzyReg---------
-if layer_type == 8:
+if layer_type == 8 or layer_type == 12:
     regularization_loss_summary = tf.scalar_summary("regularization_loss", regularization_loss)
     sigmas_summary = tf.histogram_summary("sigmas", sigmas)
 
 #-------- Merging Summaries --------------------------
-if layer_type == 8:
+if layer_type == 8 or layer_type == 12:
     train_summaries = tf.merge_summary([train_accuracy_summary, train_loss_summary, regularization_loss_summary, sigmas_summary])
     test_summaries = tf.merge_summary([test_accuracy_summary, test_loss_summary])
 else:
