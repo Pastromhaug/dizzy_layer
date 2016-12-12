@@ -29,9 +29,9 @@ class IRNNCellAbs(tf.nn.rnn_cell.RNNCell):
         state_out = linearTransformIdentityInit(state, self._num_units)
 
         if self._bottom == True:
-            input_out = linearTransformWithBias([inputs], self._num_units, bias=False)
+            input_out = linearTransformWithBias([inputs], self._num_units, bias=False, scope=scope)
         else:
-            input_out = linearTransformIdentityInit(inputs, self._num_units)
+            input_out = linearTransformIdentityInit(inputs, self._num_units, scope=scope)
         bias = vs.get_variable(
             "input_bias", [self._num_units],
             dtype=tf.float32,
