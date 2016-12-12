@@ -10,9 +10,9 @@ from data.genCopyProblemData import genEpochs, genTestData, getTestData
 
 #global config variables
 num_epochs = 200
-num_steps = 30 # number of truncated backprop steps ('n' in the discussion above)
+num_steps = 100 # number of truncated backprop steps ('n' in the discussion above)
 batch_size = 100
-num_batches = 8
+num_batches = 10
 num_classes = 10
 copy_len = 10
 summary_name = sys.argv[1]
@@ -85,7 +85,7 @@ sess = tf.Session()
 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
 run_metadata = tf.RunMetadata()
 
-train_writer = tf.train.SummaryWriter('./tensorboard/' + summary_name, sess.graph)
+train_writer = tf.train.SummaryWriter('./tensorflaz/' + summary_name, sess.graph)
 
 train_step = tf.train.AdagradOptimizer(learning_rate).minimize(loss + regularization_loss)
 
