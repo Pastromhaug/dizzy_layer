@@ -43,13 +43,13 @@ with tf.variable_scope('softmax'):
     W = tf.get_variable('W', [state_size, num_classes + 2])
     b = tf.get_variable('b', [num_classes + 2], initializer=tf.constant_initializer(0.0))
 
-logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs]
+logits = [tf.matmul(rnn_output, W) + b for rnn_output in rnn_outputs[-copy_len:]]
 logits = tf.transpose(logits, [1, 0, 2])
 
 predictions = tf.unpack(logits)
 predictions = [tf.argmax(prediction, 1) for prediction in predictions]
 
-labels = [tf.squeeze(i, squeeze_dims=[0]) for i in tf.split(0, batch_size, y)]
+labels = [tf.squeeze(i, squeeze_dims=[0])[-copy_len:] for i in tf.split(0, batch_size, y)]
 
 accuracy = [tf.equal(tf.cast(prediction, tf.int32), label) for \
         prediction, label in zip(predictions, labels)]
