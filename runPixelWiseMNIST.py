@@ -122,7 +122,7 @@ def train_network(num_epochs, state_size=4, verbose=True):
 
             train_acc += train_accuracy_
             training_loss += training_loss_
-            train_writer.add_summary(train_summaries_, writer_count)
+            train_writer.add_summary(train_summaries_, k)
             writer_count += 1
 
         test_loss = 0
@@ -134,7 +134,7 @@ def train_network(num_epochs, state_size=4, verbose=True):
                 feed_dict={x:X_test, y:Y_test, lr:learning_rate})
             test_loss += test_loss_
             test_acc += test_accuracy_
-            train_writer.add_summary(test_summaries_, writer_count)
+            train_writer.add_summary(test_summaries_, k)
             test_num_steps += 1
 
         train_acc = train_acc/train_num_steps
