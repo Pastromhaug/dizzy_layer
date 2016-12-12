@@ -34,4 +34,6 @@ def buildRotations(n,num_rots=None):
             sparse_rot = tf.SparseTensor(indices=curr_indices, values=curr_values, shape=shape)
             outputs.append(sparse_rot)
     print("buildRotations output length: %d" % len(outputs))
+    for r in outputs:
+        print r
     return outputs
