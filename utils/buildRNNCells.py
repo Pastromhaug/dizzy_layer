@@ -63,5 +63,8 @@ def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
     elif layer_type == 12:
         rotations = buildRotations(state_size, num_rots)
         stacked_cell = DizzyRNNCellOptHackySigmas(state_size, rotations)
+    elif layer_type == 13:
+        rotations = buildRotations(state_size, num_rots)
+        stacked_cell = DizzyRNNCellOptHackySigmas(state_size, rotations)
 
     return stacked_cell
