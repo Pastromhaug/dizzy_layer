@@ -25,7 +25,7 @@ num_rots = state_size - 1
 if layer_type == 8:
     lambda_reg = float(sys.argv[6])
 
-if (layer_type == 10 or layer_type == 12 or layer_type == 13) and len(sys.argv) >= 7:
+if (layer_type in [10,12,13,14]) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 
 if (layer_type == 12):

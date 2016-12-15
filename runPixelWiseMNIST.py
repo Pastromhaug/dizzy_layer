@@ -17,13 +17,14 @@ learning_rate = float(sys.argv[4])
 num_stacked = int(sys.argv[5])
 num_test_runs = batch_size
 num_classes = 10
+gradient_clipping = 1.0
 Lambda = 0
 num_rots = state_size-1
 print("layer type in pixel %d ")
 if layer_type == 8:
     lambda_reg = float(sys.argv[6])
 
-if (layer_type == 10 or layer_type == 12 or layer_type == 13) and len(sys.argv) >= 7:
+if (layer_type in [10,12,13,14]) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 
 if (layer_type == 12):
@@ -33,8 +34,8 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 #--------------- Placeholders --------------------------
 x = tf.placeholder(tf.float32, [batch_size, 784], name='input_placeholder')
 input_data = tf.unpack(x,784,1)
-input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
-# input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
+# input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
+input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
 y = tf.placeholder(tf.float32, [batch_size, 10], name='labels_placeholder')
 lr = tf.placeholder(tf.float32, name='learning_rate')
 
@@ -60,8 +61,17 @@ if layer_type == 8 or layer_type == 12:
     regularization_loss = tf.reduce_mean([regularizeSpread(sigma, Lambda) for sigma in sigmas])
 
 #------------------------ Optimizer ---------------------
-train_step = tf.train.AdagradOptimizer(learning_rate) \
-    .minimize(loss + regularization_loss)
+# train_step = tf.train.AdagradOptimizer(learning_rate) \
+#     .minimize(loss + regularization_loss)
+optimizer = tf.train.AdagradOptimizer(learning_rate)
+if layer_type in [6, 8, 10, 12, 13, 14]:
+    print("No Gradient Clipping")
+    train_step = optimizer.minimize(loss + regularization_loss)
+else:
+    print("Gradient Clipping: %d" % gradient_clipping)
+    gradients = optimizer.compute_gradients(loss)
+    capped_gvs = [(tf.clip_by_value(grad, -gradient_clipping, gradient_clipping), var) for grad, var in gradients]
+    train_step = optimizer.apply_gradients(capped_gvs)
 
 #--------------- Calculating Accuracy ------------------
 pred_label = tf.argmax(prediction,1)

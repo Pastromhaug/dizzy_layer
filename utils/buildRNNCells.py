@@ -10,6 +10,7 @@ from layers.decompRNNCell import DecompRNNCell
 from layers.dizzyRNNCell import DizzyRNNCell
 from layers.dizzyRNNCellOptHacky import DizzyRNNCellOptHacky
 from layers.dizzyRNNCellOptHackySigmas import DizzyRNNCellOptHackySigmas
+from layers.DizzyRHNCell import DizzyRHNCell
 from utils.buildRotations import buildRotations
 
 def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
@@ -66,5 +67,9 @@ def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
     elif layer_type == 13:
         rotations = buildRotations(state_size, num_rots)
         stacked_cell = DizzyRNNCellOptHackySigmas(state_size, rotations)
+    elif layer_type == 14:
+        rotations = buildRotations(state_size, num_rots)
+        stacked_cell = DizzyRHNCell(state_size, rotations)
+
 
     return stacked_cell
