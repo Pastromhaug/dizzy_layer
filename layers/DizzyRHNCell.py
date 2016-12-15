@@ -43,6 +43,6 @@ class DizzyRHNCell(tf.nn.rnn_cell.RNNCell):
                 initializer=init_ops.constant_initializer(dtype=tf.float32))
 
             input_gate = tf.add(-1.0, gate)
-            print(input_gate)
+            # print(input_gate)
             output = state * gate + input_gate * tf.abs(state_out + input_out + bias)
         return output, output
