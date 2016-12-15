@@ -9,7 +9,7 @@ from utils.regularizeSpread import regularizeSpread
 num_epochs = 100
 batch_size = 100
 num_batches = 55000/batch_size
-test_batches = 10000/batch_size
+num_test_batches = 10000/batch_size
 summary_name = sys.argv[1]
 state_size = int(sys.argv[2])
 layer_type = int(sys.argv[3])
@@ -103,6 +103,14 @@ def train_network(num_epochs, state_size=4, verbose=True):
     train = mnist.train
     test = mnist.test
 
+    batches = []
+    for i in range(num_batches):
+        batches.append(train.next_batch(batch_size))
+
+    test_batches = []
+    for j in range(num_test_batches):
+        test_batches.append(test.next_batch(batch_size))
+
     writer_count = 0
     for k in range(num_epochs):
         training_loss = 0
@@ -111,7 +119,7 @@ def train_network(num_epochs, state_size=4, verbose=True):
         print("EPOCH %d" % k)
 
         for i in range(num_batches):
-            batch = train.next_batch(batch_size)
+            batch = batches[i]
             train_num_steps += 1
             (training_loss_, _ , train_accuracy_, train_summaries_) = \
                 sess.run([ loss,
@@ -128,10 +136,10 @@ def train_network(num_epochs, state_size=4, verbose=True):
         test_loss = 0
         test_acc = 0
         test_num_steps = 0
-        for j in range(test_batches):
-            X_test, Y_test = test.next_batch(batch_size)
+        for j in range(num_test_batches):
+            test_batch = test_batches[j]
             (test_loss_, test_accuracy_, test_summaries_) = sess.run([loss, accuracy, test_summaries],
-                feed_dict={x:X_test, y:Y_test, lr:learning_rate})
+                feed_dict={x:test_batch[0], y:test_batch[1], lr:learning_rate})
             test_loss += test_loss_
             test_acc += test_accuracy_
             train_writer.add_summary(test_summaries_, k)
