@@ -23,7 +23,7 @@ print("layer type in pixel %d ")
 if layer_type == 8:
     lambda_reg = float(sys.argv[6])
 
-if (layer_type == 10 or layer_type == 12) and len(sys.argv) >= 7:
+if (layer_type == 10 or layer_type == 12 or layer_type == 13) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 
 if (layer_type == 12):
