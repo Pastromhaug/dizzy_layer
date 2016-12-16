@@ -34,8 +34,8 @@ rnn = buildRNNCells(layer_type, state_size, num_stacked, num_rots)
 #--------------- Placeholders --------------------------
 x = tf.placeholder(tf.float32, [batch_size, 784], name='input_placeholder')
 input_data = tf.unpack(x,784,1)
-# input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
-input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
+input_data = [tf.reshape(j, [batch_size,1]) for j in input_data ]
+# input_data = [tf.reshape(input_data[j], [batch_size,1]) for j in range(10) ]
 y = tf.placeholder(tf.float32, [batch_size, 10], name='labels_placeholder')
 lr = tf.placeholder(tf.float32, name='learning_rate')
 
@@ -131,16 +131,24 @@ def train_network(num_epochs, state_size=4, verbose=True):
         for i in range(num_batches):
             batch = batches[i]
             train_num_steps += 1
-            (training_loss_, _ , train_accuracy_, train_summaries_) = \
-                sess.run([ loss,
-                          train_step,
-                          accuracy,
-                          train_summaries],
-                              feed_dict={x:batch[0], y:batch[1], lr:learning_rate})
+            if i%100 == 0:
+                (training_loss_, _ , train_accuracy_, train_summaries_) = \
+                    sess.run([ loss,
+                              train_step,
+                              accuracy,
+                              train_summaries],
+                                  feed_dict={x:batch[0], y:batch[1], lr:learning_rate})
+                train_writer.add_summary(train_summaries_, k)
+            else:
+                (training_loss_, _ , train_accuracy_, ) = \
+                    sess.run([ loss,
+                              train_step,
+                              accuracy,],
+                                  feed_dict={x:batch[0], y:batch[1], lr:learning_rate})
+
 
             train_acc += train_accuracy_
             training_loss += training_loss_
-            train_writer.add_summary(train_summaries_, k)
             writer_count += 1
 
         test_loss = 0
@@ -148,11 +156,15 @@ def train_network(num_epochs, state_size=4, verbose=True):
         test_num_steps = 0
         for j in range(num_test_batches):
             test_batch = test_batches[j]
-            (test_loss_, test_accuracy_, test_summaries_) = sess.run([loss, accuracy, test_summaries],
-                feed_dict={x:test_batch[0], y:test_batch[1], lr:learning_rate})
+            if j % 100 == 0:
+                (test_loss_, test_accuracy_, test_summaries_) = sess.run([loss, accuracy, test_summaries],
+                    feed_dict={x:test_batch[0], y:test_batch[1], lr:learning_rate})
+                train_writer.add_summary(test_summaries_, k)
+            else:
+                (test_loss_, test_accuracy_) = sess.run([loss, accuracy],
+                    feed_dict={x:test_batch[0], y:test_batch[1], lr:learning_rate})
             test_loss += test_loss_
             test_acc += test_accuracy_
-            train_writer.add_summary(test_summaries_, k)
             test_num_steps += 1
 
         train_acc = train_acc/train_num_steps
