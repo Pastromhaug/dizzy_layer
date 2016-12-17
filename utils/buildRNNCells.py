@@ -51,25 +51,26 @@ def buildRNNCells(layer_type, state_size, num_stacked, num_rots=None):
         rnn_cell = BasicRNNCellGauss(state_size)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_stacked)
     elif layer_type == 10:
-        print("num_rots in buildRNNCell %d" % num_rots)
-        rotations = buildRotations(state_size, num_rots)
-        print("num rotations in buildRNNCell: %d" %(len(rotations)))
-        rnn_cell = DizzyRNNCellOptHacky(state_size, rotations)
-        stacked_cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell])
+        rotations = buildRotations(state_size, True, num_rots)
+        stacked_cell = DizzyRNNCellOptHacky(state_size,  rotations)
     elif layer_type == 11:
         bottom_cell = IRNNCellAbs(state_size, bottom=True)
         rnn_cell = IRNNCellAbs(state_size, bottom=False)
         stacked_cell = tf.nn.rnn_cell.MultiRNNCell(
             [bottom_cell] + [rnn_cell] * (num_stacked-1))
     elif layer_type == 12:
-        rotations = buildRotations(state_size, num_rots)
+        rotations = buildRotations(state_size, True, num_rots)
         stacked_cell = DizzyRNNCellOptHackySigmas(state_size, rotations)
     elif layer_type == 13:
-        rotations = buildRotations(state_size, num_rots)
+        rotations = buildRotations(state_size, True, num_rots)
         stacked_cell = DizzyRNNCellOptHackySigmas(state_size, rotations)
     elif layer_type == 14:
-        rotations = buildRotations(state_size, num_rots)
+        rotations = buildRotations(state_size, True, num_rots)
         stacked_cell = DizzyRHNCell(state_size, rotations)
+    elif layer_type == 15:
+        rotations = buildRotations(state_size, False, num_rots)
+        stacked_cell = DizzyRNNCellOptHacky(state_size, rotations)
+
 
 
     return stacked_cell

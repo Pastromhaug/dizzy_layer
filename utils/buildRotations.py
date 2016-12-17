@@ -4,7 +4,8 @@ import math
 from tensorflow.python.ops import variable_scope as vs
 from utils.rotationPreprocess import rotationPreprocess
 
-def buildRotations(n,num_rots=None):
+def buildRotations(n, rand_or_identity,num_rots=None):
+    print("num_rots: %d" %num_rots)
     num_rots = num_rots or (n-1)
     n_prime = int(n*(n-1)//2*num_rots/(n-1))
     outputs = []
@@ -12,9 +13,14 @@ def buildRotations(n,num_rots=None):
     with vs.variable_scope("Build_Rotations"):
 
         (indices, values_idxs) = rotationPreprocess(n, num_rots)
-        thetas = vs.get_variable(initializer=tf.random_uniform([n_prime, 1], 0, 2*math.pi),
-                name="Thetas", dtype=tf.float32)
-
+        if rand_or_identity:
+            print("Initialization: Random")
+            thetas = vs.get_variable(initializer=tf.random_uniform([n_prime, 1], 0, 2*math.pi),
+                    name="Thetas_RandInit", dtype=tf.float32)
+        else:
+            print("Initialization: Identity")
+            thetas = vs.get_variable(initializer=tf.zeros([n_prime, 1]),
+                    name="Thetas_OnesInit", dtype=tf.float32)
         cos = tf.cos(thetas)
         sin = tf.sin(thetas)
         nsin = tf.neg(sin)

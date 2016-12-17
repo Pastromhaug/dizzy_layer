@@ -24,7 +24,7 @@ print("layer type in pixel %d ")
 if layer_type == 8:
     lambda_reg = float(sys.argv[6])
 
-if (layer_type in [10,12,13,14]) and len(sys.argv) >= 7:
+if (layer_type in [10,12,13,14,15]) and len(sys.argv) >= 7:
     num_rots = int(sys.argv[6])
 
 if (layer_type == 12):
@@ -64,7 +64,7 @@ if layer_type == 8 or layer_type == 12:
 # train_step = tf.train.AdagradOptimizer(learning_rate) \
 #     .minimize(loss + regularization_loss)
 optimizer = tf.train.AdagradOptimizer(learning_rate)
-if layer_type in [6, 8, 10, 12, 13, 14]:
+if layer_type in [6, 8, 10, 12, 13, 14,15]:
     print("No Gradient Clipping")
     train_step = optimizer.minimize(loss + regularization_loss)
 else:
